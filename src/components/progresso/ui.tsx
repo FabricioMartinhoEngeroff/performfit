@@ -9,6 +9,8 @@ export const Tela = styled.div`
   height: 100%;
   background: #f5f6fa;
   overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 `;

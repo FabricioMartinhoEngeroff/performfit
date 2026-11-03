@@ -6,6 +6,7 @@ export const Screen = styled.div`
   background: #f5f6fa;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 `;

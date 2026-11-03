@@ -9,11 +9,16 @@ import Perfil from "./components/perfil/Perfil";
 import BottomNav, { type Tab } from "./components/layout/BottomNav";
 import { useAuth } from "./components/login/context/useAuth";
 
+// RN-09.4: preso à tela (não rola para os lados); só o conteúdo da aba rola.
 const Shell = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
-  width: 100vw;
-  height: 100dvh;
+  width: 100%;
   overflow: hidden;
   background: #f5f6fa;
 `;

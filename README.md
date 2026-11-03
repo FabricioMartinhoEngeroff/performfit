@@ -55,7 +55,7 @@ As regras completas estão em **[docs/REGRAS_DE_NEGOCIO.md](./docs/REGRAS_DE_NEG
 **Requisitos:** Node.js 20+ e npm.
 
 ```bash
-git clone https://github.com/<seu-usuario>/performfit.git
+git clone https://github.com/FabricioMartinhoEngeroff/performfit.git
 cd performfit
 npm install
 cp .env.example .env.local   # preencha as variáveis

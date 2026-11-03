@@ -126,6 +126,7 @@ e só então o código.
 - **RN-09.1** Botões e alvos de toque com **pelo menos 48px**; botões principais com 56px.
 - **RN-09.2** Textos principais com **16px ou mais**.
 - **RN-09.3** Vídeo com miniatura na largura do card e botão "Fechar" escrito no modal.
+- **RN-09.4** A tela do app é **fixa e centralizada**, na largura do celular: nunca rola nem "escorrega" para os lados. Só o conteúdo de cada aba rola, e só na vertical.
 
 ---
 

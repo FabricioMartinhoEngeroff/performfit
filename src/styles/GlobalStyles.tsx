@@ -16,6 +16,8 @@ export const GlobalStyles = createGlobalStyle`
     align-items: center;
     justify-content: flex-start;
     overflow-x: hidden;
+    overscroll-behavior-x: none;
+    max-width: 100%;
     -webkit-overflow-scrolling: touch;
   }
 `;
