@@ -1,5 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
+import { VitePWA } from "vite-plugin-pwa";
+import { pwaOptions } from "./src/pwa/config";
 import * as fs from "fs";
 
 const httpsConfig =
@@ -17,7 +19,7 @@ export default defineConfig(({ command, mode }) => {
       : null;
 
   return {
-    plugins: [react()],
+    plugins: [react(), VitePWA(pwaOptions)],
     define: { __DEV_ADMIN__: JSON.stringify(devAdmin) },
     server: {
       https: httpsConfig,

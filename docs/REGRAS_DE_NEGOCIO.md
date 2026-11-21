@@ -139,6 +139,49 @@ e só então o código.
 - **RN-09.2** Textos principais com **16px ou mais**.
 - **RN-09.3** Vídeo com miniatura na largura do card e botão "Fechar" escrito no modal.
 - **RN-09.4** A tela do app é **fixa e centralizada**, na largura do celular: nunca rola nem "escorrega" para os lados. Só o conteúdo de cada aba rola, e só na vertical.
+- **RN-09.5** **Contraste para tela ao ar livre:** textos, ícones e bordas de controles em cinza usam **#6b7280 ou mais escuro**. O cinza claro `#9ca3af` não é usado; `#d1d5db` só em bordas e fundos, nunca em texto (nem em botão desativado ou placeholder).
+
+## RN-10 — Celebrar as conquistas
+
+- **RN-10.1** **Ícones, não emojis.** As telas de celebração usam ícones do app (lucide-react), com cor e tamanho do padrão do celular. Nada de emoji ou caractere especial como ícone (✓, ✅, 🔥).
+- **RN-10.2** **Marcar série:** vibração curta (**30 ms**) e o check aparece com uma animação rápida (ícone de check). Desmarcar não vibra.
+- **RN-10.3** **Concluir exercício** (todas as séries marcadas): confete pequeno e vibração dupla (`[40, 60, 40]`).
+- **RN-10.4** **Salvar treino:** confete. Se esse treino **fechou a semana** (antes faltava, agora atingiu os dias do plano), confete grande.
+- **RN-10.5** Vibração e confete são extras: aparelho sem vibração (iPhone) não quebra nada, e quem pediu **menos movimento** no celular (`prefers-reduced-motion`) não vê confete.
+- **RN-10.6** **Frase motivacional** ao salvar, abaixo de "Treino salvo!", escolhida pelo contexto (a primeira que valer):
+  1. fechou a semana, sequência > 1: `Mais uma semana fechada! 4 semanas seguidas.`
+  2. fechou a semana, sequência = 1: `Semana fechada! Sua sequência começou.`
+  3. primeiro treino: `Primeiro treino feito! O começo é o passo mais importante.`
+  4. senão: `Falta 1 treino para fechar a semana.` / `Faltam 2 treinos para fechar a semana.`
+- **RN-10.7** **Conquistas**, contadas sobre as execuções guardadas (treino = sessão + data com série marcada):
+
+  | Conquista | Regra |
+  |---|---|
+  | Primeiro treino | 1 treino |
+  | 10 treinos | 10 treinos |
+  | 4 semanas seguidas | recorde de sequência ≥ 4 (RN-06.5) — uma vez ganha, não se perde |
+  | 100 séries | 100 séries marcadas no total |
+
+  Ao salvar, cada conquista **nova** aparece como `Nova conquista: 10 treinos`. A aba **Perfil** mostra todas: as ganhas em destaque e as que faltam apagadas, com quanto falta (`7 de 10 treinos`).
+- **RN-10.8** **Faixa "Esta semana"** no topo da aba Treinar: os 7 dias (Seg a Dom), com ícone de check nos dias em que treinou e círculo vazio nos outros; hoje fica destacado. Leitor de tela: `Segunda: treinou` / `Quarta: não treinou`.
+
+## RN-11 — Data do treino
+
+- **RN-11.1** A data é escolhida por botões grandes (≥48px): **Hoje** (padrão), **Ontem** e **Outro dia**. O aluno não digita a data.
+- **RN-11.2** **Outro dia** abre o seletor de data do próprio celular (`input type="date"`), que não deixa escolher depois de hoje.
+- **RN-11.3** A data escolhida aparece por extenso acima dos botões: `Quarta-feira, 04/11/2026`.
+- **RN-11.4** Data vazia, inválida (ex.: 31/02) ou no futuro **não é trocada por hoje em silêncio**: o app avisa (`Escolha o dia do treino.` / `A data do treino não pode ser no futuro.`) e **não salva** até o aluno corrigir.
+
+## RN-12 — Instalar no celular (PWA)
+
+- **RN-12.1** O app tem **manifesto** (nome "PerformFit", abre em tela cheia `standalone`, retrato, cor do tema `#2563eb`, ícones 192 e 512 px, um deles *maskable* para Android) e **service worker** que guarda o app no celular: depois da primeira visita ele abre mais rápido e funciona **sem internet** (os dados já ficam no aparelho, RN-08.1). Vídeos e GIFs continuam precisando de internet.
+- **RN-12.2** O service worker se **atualiza sozinho** quando sai uma versão nova (não fica preso numa versão velha).
+- **RN-12.3** Na aba **Perfil**, cartão **Instalar no celular**:
+  - Android/Chrome: botão **Instalar o app**, que abre o pedido de instalação do celular. Aceitou → `App instalado! Procure o PerformFit na tela inicial.`
+  - iPhone (Safari não tem botão): instrução `Toque em Compartilhar e depois em "Adicionar à Tela de Início".`
+  - Já aberto como app instalado: o cartão não aparece.
+  - Outros navegadores sem suporte: o cartão não aparece.
+- **RN-12.4** A instalação só funciona em **HTTPS de verdade** (produção) ou `localhost`. O certificado de teste da rede local não basta para o service worker.
 
 ---
 

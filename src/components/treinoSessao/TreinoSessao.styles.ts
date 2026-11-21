@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
 export const Screen = styled.div`
   width: 100%;
@@ -147,7 +147,7 @@ export const MultiSelectInput = styled.input`
     border-color: #2563eb;
   }
   &::placeholder {
-    color: #9ca3af;
+    color: #6b7280;
   }
 `;
 
@@ -310,7 +310,7 @@ export const InputBox = styled.input<InputBoxProps>`
     color: #111827;
   }
   &::placeholder {
-    color: #d1d5db;
+    color: #6b7280;
   }
 `;
 
@@ -332,7 +332,7 @@ export const InputSm = styled.input<InputBoxProps>`
     color: #111827;
   }
   &::placeholder {
-    color: #d1d5db;
+    color: #6b7280;
   }
 `;
 
@@ -361,7 +361,7 @@ export const ObsInput = styled.textarea`
     border-color: #2563eb;
   }
   &::placeholder {
-    color: #9ca3af;
+    color: #6b7280;
   }
 `;
 
@@ -371,7 +371,7 @@ export const SaveBtn = styled.button<{ $disabled?: boolean }>`
   width: 100%;
   padding: 13px;
   background: ${(p) => (p.$disabled ? "#e5e7eb" : "#2563eb")};
-  color: ${(p) => (p.$disabled ? "#9ca3af" : "#ffffff")};
+  color: ${(p) => (p.$disabled ? "#6b7280" : "#ffffff")};
   border: none;
   border-radius: 12px;
   font-size: 15px;
@@ -402,23 +402,6 @@ export const ToastBanner = styled.div<ToastBannerProps>`
   font-weight: 600;
 `;
 
-/* ── Date input ──────────────────────────────────────────────── */
-
-export const DateInput = styled.input`
-  background: none;
-  border: none;
-  font-size: 12px;
-  color: #6b7280;
-  padding: 0;
-  margin: 2px 0 0;
-  cursor: pointer;
-  font-family: inherit;
-  &:focus {
-    outline: none;
-    color: #2563eb;
-  }
-`;
-
 /* ── PerformFit: séries por checkbox e botões grandes ────────── */
 
 export const SeriesChecks = styled.div`
@@ -427,6 +410,12 @@ export const SeriesChecks = styled.div`
   gap: 12px;
   justify-content: center;
   margin: 12px 0 8px;
+`;
+
+const popCheck = keyframes`
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
 `;
 
 export const SerieCheck = styled.button<{ $checked: boolean }>`
@@ -444,7 +433,7 @@ export const SerieCheck = styled.button<{ $checked: boolean }>`
     width: 64px;
     height: 64px;
     border-radius: 14px;
-    border: 2.5px solid ${(p) => (p.$checked ? "#16a34a" : "#9ca3af")};
+    border: 2.5px solid ${(p) => (p.$checked ? "#16a34a" : "#6b7280")};
     background: ${(p) => (p.$checked ? "#16a34a" : "#ffffff")};
     color: #ffffff;
     font-size: 34px;
@@ -460,6 +449,16 @@ export const SerieCheck = styled.button<{ $checked: boolean }>`
     font-size: 15px;
     font-weight: 600;
     color: ${(p) => (p.$checked ? "#166534" : "#374151")};
+  }
+
+  &[data-animar="true"] > span:first-child {
+    animation: ${popCheck} 0.25s ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &[data-animar="true"] > span:first-child {
+      animation: none;
+    }
   }
 
   &:active > span:first-child {
@@ -511,7 +510,7 @@ export const NavBtn = styled.button`
   &:disabled {
     border-color: #e5e7eb;
     background: #f9fafb;
-    color: #d1d5db;
+    color: #6b7280;
     cursor: default;
   }
 `;
@@ -580,7 +579,7 @@ export const ItemExercicio = styled.button<{ $estado: "concluido" | "parcial" | 
     font-size: 17px;
     font-weight: 700;
     color: ${(p) =>
-      p.$estado === "concluido" ? "#16a34a" : p.$estado === "parcial" ? "#2563eb" : "#9ca3af"};
+      p.$estado === "concluido" ? "#16a34a" : p.$estado === "parcial" ? "#2563eb" : "#6b7280"};
   }
 `;
 
@@ -624,4 +623,86 @@ export const BotaoLista = styled.button`
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
+`;
+
+/* ── PerformFit: celebração e faixa da semana (RN-10) ── */
+
+export const CelebracaoCard = styled.div`
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+
+  & .titulo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #166534;
+  }
+
+  & .frase {
+    margin: 8px 0 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  & .resumo {
+    margin: 4px 0 0;
+    font-size: 16px;
+    color: #4b5563;
+  }
+
+  & .conquista {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 16px;
+    font-weight: 700;
+  }
+`;
+
+export const FaixaSemana = styled.ul`
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 10px 8px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  background: #ffffff;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+
+  & > li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+  }
+
+  & > li[data-treinou="true"] {
+    color: #16a34a;
+  }
+
+  & > li[aria-current="date"] {
+    background: #eff6ff;
+    color: #2563eb;
+  }
+
+  & > li[aria-current="date"][data-treinou="true"] {
+    color: #16a34a;
+  }
 `;

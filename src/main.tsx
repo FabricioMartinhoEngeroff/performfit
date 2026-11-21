@@ -6,6 +6,10 @@ import { createAuthGateway } from "./components/login/gateway/createAuthGateway"
 import "./index.css";
 import { router } from "./router/RouterTEMP";
 import { GlobalStyles } from "./styles/GlobalStyles";
+import { iniciarCapturaInstalacao } from "./utils/instalacao";
+
+// RN-12.3: o Chrome pede a instalação logo ao abrir; guarda o pedido para o Perfil.
+iniciarCapturaInstalacao();
 
 async function bootstrap() {
   // D9: em produção sem config do Firebase isto lança, e o app não inicia.

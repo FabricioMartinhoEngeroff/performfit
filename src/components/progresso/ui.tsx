@@ -75,7 +75,7 @@ const SetaBtn = styled.button`
   &:disabled {
     border-color: #e5e7eb;
     background: #f9fafb;
-    color: #d1d5db;
+    color: #6b7280;
     cursor: default;
   }
 `;
@@ -113,8 +113,8 @@ export function GruposBarras({ grupos }: { grupos: { grupo: string; series: numb
       {grupos.map(({ grupo, series }) => (
         <li key={grupo} aria-label={grupo}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 16, marginBottom: 4 }}>
-            <span style={{ fontWeight: 600, color: series > 0 ? "#111827" : "#9ca3af" }}>{grupo}</span>
-            <span style={{ color: series > 0 ? "#374151" : "#9ca3af" }}>{plural(series, "série", "séries")}</span>
+            <span style={{ fontWeight: 600, color: series > 0 ? "#111827" : "#6b7280" }}>{grupo}</span>
+            <span style={{ color: series > 0 ? "#374151" : "#6b7280" }}>{plural(series, "série", "séries")}</span>
           </div>
           <div style={{ height: 12, background: "#f3f4f6", borderRadius: 6, overflow: "hidden" }}>
             <div

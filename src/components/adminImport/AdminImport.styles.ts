@@ -65,7 +65,7 @@ export const DropText = styled.p`
 
 export const DropSub = styled.p`
   font-size: 12px;
-  color: #9ca3af;
+  color: #6b7280;
   margin: 0;
 `;
 
@@ -146,7 +146,7 @@ export const PesoBadge = styled.span`
 `;
 
 export const EmptyBadge = styled.span`
-  color: #d1d5db;
+  color: #6b7280;
   font-size: 11px;
 `;
 
@@ -195,7 +195,7 @@ export const BtnPrimary = styled.button`
 
   &:disabled {
     background: #e5e7eb;
-    color: #9ca3af;
+    color: #6b7280;
     cursor: not-allowed;
   }
 

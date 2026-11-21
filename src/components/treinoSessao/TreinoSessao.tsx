@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import { Check, Circle, CircleCheck, PartyPopper, Trophy } from "lucide-react";
 import { idDaSessao } from "../../utils/planilhaSessoes";
 import { carregarExercicios, lerJSONObjeto } from "../../utils/planoAtual";
-import { carregarPlano, textoRepeticoes, treinoSugerido, type ExercicioPlano, type Plano } from "../../utils/planoPerformfit";
+import { carregarPlano, diasPorSemana, textoRepeticoes, treinoSugerido, type ExercicioPlano, type Plano } from "../../utils/planoPerformfit";
+import { resumoSequencia, treinosNaSemana } from "../../utils/semanas";
+import { conquistas, diasDaSemana, fraseMotivacional, novasConquistas, totalTreinos } from "../../utils/conquistas";
+import { soltarConfete, vibrar, VIBRACAO } from "../../utils/celebrar";
+import { brParaIso, diaPorExtenso, formatarBR, isoParaBR, parseDataBR, validarDataTreino } from "../../utils/datas";
 import { storageKey } from "../../utils/storage";
 import { plural } from "../../utils/plural";
 import {
@@ -16,7 +21,6 @@ import {
   Screen,
   TopBar,
   TopBarTitle,
-  DateInput,
   Content,
   Card,
   Label,
@@ -40,12 +44,15 @@ import {
   ItemExercicio,
   AvisoAvanco,
   BotaoLista,
+  CelebracaoCard,
+  FaixaSemana,
 } from "./TreinoSessao.styles";
 import { ExerciseGif } from "./ExerciseGif";
 import ImportarPlano from "../plano/ImportarPlano";
 
 // Aba Treinar — regras em docs/REGRAS_DE_NEGOCIO.md (RN-02.5, RN-03, RN-04, RN-05).
 // RN-04.12 a RN-04.15: lista do treino, barra de progresso e avanço automático.
+// RN-10: vibração, confete, frase motivacional, conquistas e faixa "Esta semana".
 
 // ─── Estado de um exercício no treino em andamento ───────────────────────────
 // O aluno não anota peso: marca um checkbox por série válida (feitas[i]).
@@ -74,20 +81,19 @@ const SEM_SESSAO: Andamento = { sessao: null, states: {}, idx: 0, lista: false, 
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getTodayBR(): string {
-  return new Date().toLocaleDateString("pt-BR");
-}
-
-function parseDateBRToTs(data: string): number {
-  const [d, m, y] = data.split("/").map(Number);
-  if (!d || !m || !y) return Date.now();
-  return new Date(y, m - 1, d).getTime();
+/** "DD/MM/AAAA" de hoje menos `dias`. */
+function diaBR(dias = 0): string {
+  const h = new Date();
+  return formatarBR(new Date(h.getFullYear(), h.getMonth(), h.getDate() - dias).getTime());
 }
 
 function daysSince(dateStr: string | null): number | null {
-  if (!dateStr) return null;
-  return Math.floor((Date.now() - parseDateBRToTs(dateStr)) / (1000 * 60 * 60 * 24));
+  const ts = dateStr ? parseDataBR(dateStr) : null;
+  if (ts === null) return null;
+  return Math.floor((Date.now() - ts) / (1000 * 60 * 60 * 24));
 }
+
+type ModoData = "hoje" | "ontem" | "outro";
 
 function estadoVazio(ex: ExercicioPlano): ExerciseState {
   return { feitas: Array<boolean>(ex.series).fill(false), skipped: false, obs: "" };
@@ -183,11 +189,18 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
     const s = sugestao(plano);
     return s ? abrirSessao(s) : SEM_SESSAO;
   });
-  const [data, setData] = useState(getTodayBR());
-  const [salvo, setSalvo] = useState(false);
+  // RN-11: data por botões; "" = data inválida/apagada (nunca vira hoje em silêncio).
+  const [data, setData] = useState(() => diaBR(0));
+  const [modoData, setModoData] = useState<ModoData>("hoje");
+  const erroData = validarDataTreino(data);
   const [salvarErro, setSalvarErro] = useState<string | null>(null);
   const [confirmarSubstituir, setConfirmarSubstituir] = useState(false);
-  const [resumo, setResumo] = useState<{ series: number; exercicios: number } | null>(null);
+  const [resumo, setResumo] = useState<{
+    series: number;
+    exercicios: number;
+    frase: string;
+    novas: string[];
+  } | null>(null);
   const [mostrarRevisao, setMostrarRevisao] = useState(false);
 
   const treinos = plano?.treinos.map((t) => t.nome) ?? [];
@@ -249,14 +262,22 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
   function alternarSerie(i: number) {
     if (!currentEx) return;
     const nome = currentEx.nome;
-    const ultimo = exercicios.length - 1;
+    const antes = states[nome] ?? estadoVazio(currentEx);
+    const depois = { ...antes, skipped: false, feitas: antes.feitas.map((v, j) => (j === i ? !v : v)) };
+    const completou = depois.feitas.every(Boolean) && !antes.feitas.every(Boolean);
+
+    // RN-10.2 / RN-10.3: marcar vibra curto; concluir o exercício solta confete e vibra duplo.
+    if (completou) {
+      vibrar(VIBRACAO.exercicio);
+      soltarConfete("exercicio");
+    } else if (depois.feitas[i]) {
+      vibrar(VIBRACAO.serie);
+    }
+
     setAndamento((a) => {
-      const antes = a.states[nome]!;
-      const depois = { ...antes, skipped: false, feitas: antes.feitas.map((v, j) => (j === i ? !v : v)) };
       const states = { ...a.states, [nome]: depois };
       // RN-04.14: marcou a última série que faltava → avança sozinho (menos no último exercício).
-      const completou = depois.feitas.every(Boolean) && !antes.feitas.every(Boolean);
-      if (completou && a.idx < ultimo) return { ...a, states, idx: a.idx + 1, avancouDe: nome };
+      if (completou && a.idx < exercicios.length - 1) return { ...a, states, idx: a.idx + 1, avancouDe: nome };
       return { ...a, states };
     });
   }
@@ -282,7 +303,12 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
   function handleSalvarTreino(forcarSubstituicao = false) {
     if (!sessao) return;
 
-    const ts = parseDateBRToTs(data);
+    // RN-11.4: sem data válida não salva.
+    if (erroData) {
+      setSalvarErro(erroData);
+      return;
+    }
+    const ts = parseDataBR(data)!;
     // RN-04.6 / RN-05.2: pulado não conta séries; com anotação é gravado mesmo sem série ou pulado.
     const feitasDe = (s: ExerciseState) => (s.skipped ? 0 : contarFeitas(s));
     const execucoes: Execucao[] = exercicios
@@ -316,9 +342,26 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
     }
 
     try {
+      const meta = diasPorSemana(plano);
+      const execsAntes = carregarExecucoes();
       if (forcarSubstituicao) removerTreinoNaData(sessaoId, data);
       registrarTreino(execucoes);
       clearDraft(sessao);
+      const execsDepois = carregarExecucoes();
+
+      // RN-10.4 / RN-10.6 / RN-10.7: celebração conforme o contexto.
+      const naSemanaAntes = treinosNaSemana(execsAntes, ts);
+      const naSemanaDepois = treinosNaSemana(execsDepois, ts);
+      const fechouSemana = naSemanaAntes < meta && naSemanaDepois >= meta;
+      const frase = fraseMotivacional({
+        fechouSemana,
+        sequencia: resumoSequencia(execsDepois, meta).atual,
+        totalTreinos: totalTreinos(execsDepois),
+        treinosNaSemana: naSemanaDepois,
+        meta,
+      });
+      const novas = novasConquistas(conquistas(execsAntes, meta), conquistas(execsDepois, meta));
+      soltarConfete(fechouSemana ? "semana" : "treino");
 
       setConfirmarSubstituir(false);
       setSalvarErro(null);
@@ -326,9 +369,9 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
       setResumo({
         series: execucoes.reduce((t, e) => t + e.seriesFeitas, 0),
         exercicios: execucoes.filter((e) => e.seriesFeitas > 0).length,
+        frase,
+        novas: novas.map((c) => c.titulo),
       });
-      setSalvo(true);
-      setTimeout(() => setSalvo(false), 5000);
       setAndamento(SEM_SESSAO);
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -396,12 +439,12 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
                 fontFamily: "inherit",
               }}
             >
-              <span style={{ color: done ? "#16a34a" : "#9ca3af", fontSize: 18, width: 20, flexShrink: 0 }}>
+              <span style={{ color: done ? "#16a34a" : "#6b7280", fontSize: 18, width: 20, flexShrink: 0 }}>
                 {done ? "✓" : "○"}
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: "block", fontSize: 16, fontWeight: 500, color: "#111827" }}>{ex.nome}</span>
-                <span style={{ display: "block", fontSize: 14, color: s?.skipped || feitas === 0 ? "#9ca3af" : "#4b5563" }}>
+                <span style={{ display: "block", fontSize: 14, color: s?.skipped || feitas === 0 ? "#6b7280" : "#4b5563" }}>
                   {s?.skipped
                     ? "Pulado"
                     : feitas === 0
@@ -420,6 +463,85 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
           Voltar ao exercício
         </button>
       </Card>
+    );
+  }
+
+  function escolherModoData(modo: ModoData) {
+    setModoData(modo);
+    setSalvarErro(null);
+    if (modo === "hoje") setData(diaBR(0));
+    if (modo === "ontem") setData(diaBR(1));
+  }
+
+  /** RN-11: Hoje / Ontem / Outro dia (seletor do celular). */
+  function renderDataTreino() {
+    const opcoes: [ModoData, string][] = [["hoje", "Hoje"], ["ontem", "Ontem"], ["outro", "Outro dia"]];
+    return (
+      <div style={{ marginTop: 14 }}>
+        <Label as="p" id="rotulo-data">Dia do treino</Label>
+        <p style={{ fontSize: 17, fontWeight: 600, color: "#111827", margin: "0 0 8px" }}>
+          {diaPorExtenso(data) || "Nenhum dia escolhido"}
+        </p>
+        <SessaoRow role="group" aria-labelledby="rotulo-data">
+          {opcoes.map(([modo, texto]) => (
+            <CycleChip
+              key={modo}
+              type="button"
+              $active={modoData === modo}
+              aria-pressed={modoData === modo}
+              onClick={() => escolherModoData(modo)}
+              style={{ minHeight: 48, fontSize: 16 }}
+            >
+              {texto}
+            </CycleChip>
+          ))}
+        </SessaoRow>
+        {modoData === "outro" && (
+          <input
+            type="date"
+            aria-label="Escolher o dia do treino"
+            value={brParaIso(data)}
+            max={brParaIso(diaBR(0))}
+            onChange={(e) => {
+              setData(isoParaBR(e.target.value) ?? "");
+              setSalvarErro(null);
+            }}
+            style={{
+              width: "100%", minHeight: 48, marginTop: 10, padding: "8px 12px", boxSizing: "border-box",
+              fontSize: 17, fontFamily: "inherit", color: "#111827",
+              border: "1.5px solid #6b7280", borderRadius: 10, background: "#ffffff",
+            }}
+          />
+        )}
+        {erroData && (
+          <p aria-live="polite" style={{ fontSize: 16, fontWeight: 600, color: "#b91c1c", margin: "8px 0 0" }}>
+            {erroData}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  /** RN-10.8: os 7 dias da semana, com check nos dias em que treinou. */
+  function renderFaixaSemana() {
+    return (
+      <FaixaSemana aria-label="Esta semana">
+        {diasDaSemana(historico).map((d) => (
+          <li
+            key={d.sigla}
+            aria-label={`${d.nome}: ${d.treinou ? "treinou" : "não treinou"}`}
+            aria-current={d.hoje ? "date" : undefined}
+            data-treinou={String(d.treinou)}
+          >
+            {d.treinou ? (
+              <CircleCheck size={26} strokeWidth={2.5} aria-hidden="true" />
+            ) : (
+              <Circle size={26} strokeWidth={2} aria-hidden="true" />
+            )}
+            <span>{d.sigla}</span>
+          </li>
+        ))}
+      </FaixaSemana>
     );
   }
 
@@ -509,9 +631,10 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
               aria-checked={marcada}
               aria-label={`Série ${i + 1}`}
               $checked={marcada}
+              data-animar={String(marcada)}
               onClick={() => alternarSerie(i)}
             >
-              <span aria-hidden="true">{marcada ? "✓" : ""}</span>
+              <span aria-hidden="true">{marcada && <Check size={38} strokeWidth={3.5} />}</span>
               <span aria-hidden="true">Série {i + 1}</span>
             </SerieCheck>
           ))}
@@ -585,21 +708,29 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
     <Screen>
       <TopBar>
         <TopBarTitle>PerformFit</TopBarTitle>
-        <DateInput
-          type="text"
-          value={data}
-          onChange={(e) => setData(e.target.value)}
-          aria-label="Data do treino"
-          style={{ fontSize: 14 }}
-        />
         {renderDaysSince()}
       </TopBar>
 
       <Content>
-        {salvo && (
-          <ToastBanner $variant="success" role="status" style={{ fontSize: 16 }}>
-            ✅ Treino salvo! Bom trabalho.
-          </ToastBanner>
+        {renderFaixaSemana()}
+
+        {resumo && (
+          <CelebracaoCard role="status">
+            <div className="titulo">
+              <PartyPopper size={28} aria-hidden="true" />
+              <span>Treino salvo!</span>
+            </div>
+            <p className="frase">{resumo.frase}</p>
+            <p className="resumo">
+              {plural(resumo.series, "série", "séries")} em {plural(resumo.exercicios, "exercício", "exercícios")}
+            </p>
+            {resumo.novas.map((titulo) => (
+              <p key={titulo} className="conquista">
+                <Trophy size={22} aria-hidden="true" />
+                <span>Nova conquista: {titulo}</span>
+              </p>
+            ))}
+          </CelebracaoCard>
         )}
         {salvarErro && (
           <ToastBanner $variant="error" role="alert" style={{ fontSize: 16 }}>
@@ -629,16 +760,9 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
               Próximo da sequência: {proximo}
             </p>
           )}
+          {renderDataTreino()}
         </Card>
 
-        {resumo && (
-          <Card>
-            <Label>Resumo do treino</Label>
-            <p style={{ fontSize: 17, color: "#111827", margin: "4px 0" }}>
-              {plural(resumo.series, "série", "séries")} em {plural(resumo.exercicios, "exercício", "exercícios")}
-            </p>
-          </Card>
-        )}
 
         {sessao && mostrarRevisao && renderRevisao()}
 

@@ -1,7 +1,11 @@
-import { useState, type ChangeEvent } from "react";
+import { useMemo, useState, type ChangeEvent } from "react";
+import { Lock, Trophy } from "lucide-react";
 import ImportarPlano from "../plano/ImportarPlano";
+import InstalarApp from "./InstalarApp";
 import { importarBackupPerformfit, montarBackupPerformfit } from "../../utils/backupPerformfit";
-import { carregarPlano, resumoPlano } from "../../utils/planoPerformfit";
+import { carregarPlano, diasPorSemana, resumoPlano } from "../../utils/planoPerformfit";
+import { carregarExecucoes } from "../../utils/execucoes";
+import { conquistas } from "../../utils/conquistas";
 import { Cartao, Conteudo, Rotulo, Tela, Texto, Titulo, Topo } from "../progresso/ui";
 import { plural } from "../../utils/plural";
 
@@ -22,10 +26,46 @@ function baixarBackup() {
   URL.revokeObjectURL(url);
 }
 
-/** Aba Perfil: treino atual, trocar de ficha (RN-02.4) e backup (RN-08.2). */
+/** RN-10.7: conquistas ganhas em destaque; as outras apagadas, com quanto falta. */
+function Conquistas({ versao }: { versao: number }) {
+  const lista = useMemo(() => conquistas(carregarExecucoes(), diasPorSemana()), [versao]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <ul
+      aria-label="Conquistas"
+      style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
+    >
+      {lista.map((c) => (
+        <li
+          key={c.id}
+          aria-label={`${c.titulo}: ${c.ganha ? "conquistada" : c.progresso}`}
+          data-ganha={String(c.ganha)}
+          style={{
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 6, textAlign: "center",
+            padding: "14px 8px", borderRadius: 14,
+            background: c.ganha ? "#fef3c7" : "#f9fafb",
+            border: `1.5px solid ${c.ganha ? "#f59e0b" : "#e5e7eb"}`,
+          }}
+        >
+          {c.ganha ? (
+            <Trophy size={34} color="#d97706" strokeWidth={2.2} aria-hidden="true" />
+          ) : (
+            <Lock size={30} color="#6b7280" strokeWidth={2} aria-hidden="true" />
+          )}
+          <span style={{ fontSize: 16, fontWeight: 700, color: c.ganha ? "#92400e" : "#6b7280" }}>{c.titulo}</span>
+          <span style={{ fontSize: 14, color: c.ganha ? "#92400e" : "#6b7280" }}>
+            {c.ganha ? "Conquistada" : c.progresso}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Aba Perfil: treino atual, conquistas (RN-10.7), trocar de ficha (RN-02.4) e backup (RN-08.2). */
 export default function Perfil() {
   const [plano, setPlano] = useState(() => carregarPlano());
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
+  const [versaoHistorico, setVersaoHistorico] = useState(0);
 
   function importarBackup(e: ChangeEvent<HTMLInputElement>) {
     const arquivo = e.target.files?.[0];
@@ -34,7 +74,10 @@ export default function Perfil() {
     const leitor = new FileReader();
     leitor.onload = () => {
       const r = importarBackupPerformfit(String(leitor.result ?? ""));
-      if (r.ok) setPlano(carregarPlano());
+      if (r.ok) {
+        setPlano(carregarPlano());
+        setVersaoHistorico((v) => v + 1);
+      }
       setAviso(
         r.ok
           ? { ok: true, texto: `${plural(r.novos, "registro importado", "registros importados")}.` }
@@ -64,6 +107,13 @@ export default function Perfil() {
             <Texto style={{ margin: "0 0 12px" }}>Nenhum treino importado ainda.</Texto>
           )}
           <ImportarPlano onImportado={(p) => setPlano(p)} />
+        </Cartao>
+
+        <InstalarApp />
+
+        <Cartao aria-label="Suas conquistas">
+          <Rotulo>Suas conquistas</Rotulo>
+          <Conquistas versao={versaoHistorico} />
         </Cartao>
 
         <Cartao aria-label="Backup">

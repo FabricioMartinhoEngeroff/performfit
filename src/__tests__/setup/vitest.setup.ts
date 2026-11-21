@@ -19,3 +19,7 @@ if (!("ResizeObserver" in globalThis)) {
     disconnect() {}
   } as unknown as typeof ResizeObserver;
 }
+
+// jsdom não desenha em canvas: o confete de verdade (canvas-confetti) vira um stub.
+// Os testes de utils/celebrar trocam este mock pelo deles.
+vi.mock("canvas-confetti", () => ({ default: vi.fn(() => Promise.resolve()) }));

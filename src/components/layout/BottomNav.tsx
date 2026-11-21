@@ -39,13 +39,13 @@ const NavIcon = styled.span<{ $active: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${(p) => (p.$active ? "#2563eb" : "#9ca3af")};
+  color: ${(p) => (p.$active ? "#2563eb" : "#6b7280")};
   line-height: 1;
 `;
 
 const NavLabel = styled.span<{ $active: boolean }>`
   font-size: 14px;
-  color: ${(p) => (p.$active ? "#2563eb" : "#9ca3af")};
+  color: ${(p) => (p.$active ? "#2563eb" : "#6b7280")};
   font-weight: ${(p) => (p.$active ? "500" : "400")};
 `;
 

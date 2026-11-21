@@ -3,9 +3,9 @@
  * Não existe meta manual: os dias por semana vêm da planilha (RN-03.1).
  */
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import Perfil from "../../../components/perfil/Perfil";
-import { carregarExecucoes } from "../../../utils/execucoes";
+import { carregarExecucoes, registrarTreino } from "../../../utils/execucoes";
 import { carregarPlano } from "../../../utils/planoPerformfit";
 import { planoDeTeste } from "../../helpers/planoDeTeste";
 
@@ -60,5 +60,40 @@ describe("Aba Perfil", () => {
     expect(carregarExecucoes()).toHaveLength(1);
     expect(carregarPlano()!.treinos[0]!.nome).toBe("Treino A");
     expect(screen.getByText("1 treino · 1 exercício · 1 dia por semana")).toBeInTheDocument();
+  });
+
+  describe("RN-10.7 — conquistas", () => {
+    const conquista = (nome: string) =>
+      within(screen.getByRole("list", { name: "Conquistas" })).getByRole("listitem", { name: new RegExp(`^${nome}:`) });
+
+    it("sem histórico: todas bloqueadas, mostrando quanto falta", () => {
+      render(<Perfil />);
+      expect(conquista("Primeiro treino")).toHaveAccessibleName("Primeiro treino: 0 de 1 treino");
+      expect(conquista("10 treinos")).toHaveAccessibleName("10 treinos: 0 de 10 treinos");
+      expect(conquista("4 semanas seguidas")).toHaveAccessibleName("4 semanas seguidas: 0 de 4 semanas seguidas");
+      expect(conquista("100 séries")).toHaveAccessibleName("100 séries: 0 de 100 séries");
+      expect(conquista("10 treinos")).toHaveAttribute("data-ganha", "false");
+    });
+
+    it("ganhas ficam em destaque; as outras mostram o progresso; ícones, sem emoji", () => {
+      planoDeTeste();
+      registrarTreino(
+        Array.from({ length: 7 }, (_, i) => {
+          const ts = new Date(2026, 8, i + 1, 10).getTime();
+          return {
+            exercicio: "Leg press", grupo: "Quadríceps", sessao: `S${i}`, sessaoId: `S${i}`,
+            data: new Date(ts).toLocaleDateString("pt-BR"), dataTs: ts, seriesPlanejadas: 3, seriesFeitas: 3,
+          };
+        }),
+      );
+      render(<Perfil />);
+      expect(conquista("Primeiro treino")).toHaveAccessibleName("Primeiro treino: conquistada");
+      expect(conquista("Primeiro treino")).toHaveAttribute("data-ganha", "true");
+      expect(conquista("10 treinos")).toHaveAccessibleName("10 treinos: 7 de 10 treinos");
+      expect(within(conquista("10 treinos")).getByText("7 de 10 treinos")).toBeInTheDocument();
+      const lista = screen.getByRole("list", { name: "Conquistas" });
+      expect(lista.textContent).not.toMatch(/\p{Extended_Pictographic}|✓|✅/u);
+      within(lista).getAllByRole("listitem").forEach((li) => expect(li.querySelector("svg")).not.toBeNull());
+    });
   });
 });
