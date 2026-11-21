@@ -20,8 +20,9 @@ function marcarTodas() {
   });
 }
 
+/** RN-04.6: Próximo sem nenhuma série marcada = pulado. */
 function pular(n: number) {
-  for (let i = 0; i < n; i++) fireEvent.click(screen.getByRole("button", { name: "Pular" }));
+  for (let i = 0; i < n; i++) fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
 }
 
 function salvar() {
@@ -64,10 +65,10 @@ describe("TreinoSessao — PerformFit", () => {
     it("RN-03.2 sem histórico, abre direto no primeiro treino", () => {
       render(<TreinoSessao />);
       expect(chip("Treino A")).toHaveAttribute("aria-pressed", "true");
-      expect(screen.getByText("Próximo da sequência: Treino A")).toBeInTheDocument();
+      expect(screen.getByText("Treino sugerido: Treino A")).toBeInTheDocument();
       comecar();
       expect(screen.getByRole("heading", { name: "Leg press" })).toBeInTheDocument();
-      expect(screen.getByText("1 / 4")).toBeInTheDocument();
+      expect(screen.getByText("Exercício 1 de 4")).toBeInTheDocument();
     });
 
     it("RN-03.2 sugere o próximo depois do último salvo, mesmo com dias de falta", () => {
@@ -162,7 +163,7 @@ describe("TreinoSessao — PerformFit", () => {
       comecar();
       expect(botaoProximo()).toHaveAttribute("data-destaque", "false");
       marcarTodas();                                                              // avança sozinho (RN-04.14)
-      fireEvent.click(screen.getByRole("button", { name: "Exercício anterior" }));
+      fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
       expect(screen.getByText("Exercício concluído")).toBeInTheDocument();
       expect(botaoProximo()).toHaveAttribute("data-destaque", "true");
     });
@@ -172,7 +173,7 @@ describe("TreinoSessao — PerformFit", () => {
       comecar();
       marcarTodas();                       // avança sozinho (RN-04.14)
       expect(series().every((cb) => cb.getAttribute("aria-checked") === "false")).toBe(true);
-      fireEvent.click(screen.getByRole("button", { name: "Exercício anterior" }));
+      fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
       expect(series().every((cb) => cb.getAttribute("aria-checked") === "true")).toBe(true);
     });
   });
@@ -180,11 +181,10 @@ describe("TreinoSessao — PerformFit", () => {
   describe("RN-04.6 — pulado com séries marcadas", () => {
     beforeEach(planoDeTeste);
 
-    it("pulado sem anotação não grava; séries marcadas antes de pular não contam", () => {
+    it("pulado sem anotação não grava; parcial grava o que foi feito", () => {
       render(<TreinoSessao />);
       comecar();
-      fireEvent.click(series()[0]!);  // marca 1 no Leg press…
-      pular(1);                       // …e pula
+      pular(1);                       // Leg press: nada marcado → pulado
       fireEvent.click(series()[0]!);  // Cadeira flexora 1/2
       fireEvent.click(botaoProximo());
       pular(1);
@@ -201,23 +201,23 @@ describe("TreinoSessao — PerformFit", () => {
       comecar();
       fireEvent.click(series()[0]!);
       fireEvent.click(botaoProximo());
-      expect(screen.getByText("2 / 4")).toBeInTheDocument();
+      expect(screen.getByText("Exercício 2 de 4")).toBeInTheDocument();
     });
 
-    it("RN-04.6 Pular avança", () => {
+    it("RN-04.6 Próximo sem série marcada marca pulado e avança", () => {
       render(<TreinoSessao />);
       comecar();
       pular(1);
-      expect(screen.getByText("2 / 4")).toBeInTheDocument();
+      expect(screen.getByText("Exercício 2 de 4")).toBeInTheDocument();
     });
 
-    it("setas do topo navegam", () => {
+    it("Próximo e Voltar navegam", () => {
       render(<TreinoSessao />);
       comecar();
-      fireEvent.click(screen.getByRole("button", { name: "Próximo exercício" }));
-      expect(screen.getByText("2 / 4")).toBeInTheDocument();
-      fireEvent.click(screen.getByRole("button", { name: "Exercício anterior" }));
-      expect(screen.getByText("1 / 4")).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
+      expect(screen.getByText("Exercício 2 de 4")).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+      expect(screen.getByText("Exercício 1 de 4")).toBeInTheDocument();
     });
 
     it("RN-04.7 último exercício mostra Ver Resumo", () => {

@@ -52,11 +52,11 @@ describe("Aba Evolução", () => {
     planoComDias(1);
     registrarTreino([...treino(5, 10, { Peitoral: 3 }), ...treino(26, 10, { Peitoral: 3 })]);
     render(<Evolucao />);
-    expect(screen.getByLabelText("05/10 – 11/10: completa")).toBeInTheDocument();
-    expect(screen.getByLabelText("12/10 – 18/10: folga")).toBeInTheDocument();
-    expect(screen.getByLabelText("19/10 – 25/10: incompleta")).toBeInTheDocument();
-    expect(screen.getByLabelText("26/10 – 01/11: completa")).toBeInTheDocument();
-    expect(screen.getByLabelText("02/11 – 08/11: em andamento")).toBeInTheDocument();
+    expect(screen.getByLabelText("5 a 11 de outubro: completa")).toBeInTheDocument();
+    expect(screen.getByLabelText("12 a 18 de outubro: folga")).toBeInTheDocument();
+    expect(screen.getByLabelText("19 a 25 de outubro: incompleta")).toBeInTheDocument();
+    expect(screen.getByLabelText("26 de outubro a 1 de novembro: completa")).toBeInTheDocument();
+    expect(screen.getByLabelText("2 a 8 de novembro: em andamento")).toBeInTheDocument();
   });
 
   it("séries por grupo no mês, com navegação de mês e troca para ano", () => {

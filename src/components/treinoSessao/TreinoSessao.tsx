@@ -6,7 +6,7 @@ import { carregarPlano, diasPorSemana, textoRepeticoes, treinoSugerido, type Exe
 import { resumoSequencia, treinosNaSemana } from "../../utils/semanas";
 import { conquistas, diasDaSemana, fraseMotivacional, novasConquistas, totalTreinos } from "../../utils/conquistas";
 import { soltarConfete, vibrar, VIBRACAO } from "../../utils/celebrar";
-import { brParaIso, diaPorExtenso, formatarBR, isoParaBR, parseDataBR, validarDataTreino } from "../../utils/datas";
+import { brParaIso, dataFalada, formatarBR, isoParaBR, parseDataBR, validarDataTreino } from "../../utils/datas";
 import { storageKey } from "../../utils/storage";
 import { plural } from "../../utils/plural";
 import {
@@ -36,7 +36,6 @@ import {
   SerieCheck,
   ProgressoSeries,
   BigBtn,
-  NavBtn,
   ProgressoTreino,
   BarraTrilho,
   BarraPreenchida,
@@ -192,6 +191,8 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
   // RN-11: data por botões; "" = data inválida/apagada (nunca vira hoje em silêncio).
   const [data, setData] = useState(() => diaBR(0));
   const [modoData, setModoData] = useState<ModoData>("hoje");
+  // RN-11.1: os botões de data só aparecem depois de "Treinei em outro dia".
+  const [mudarData, setMudarData] = useState(false);
   const erroData = validarDataTreino(data);
   const [salvarErro, setSalvarErro] = useState<string | null>(null);
   const [confirmarSubstituir, setConfirmarSubstituir] = useState(false);
@@ -290,9 +291,11 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
     if (currentIdx > 0) irPara(currentIdx - 1);
   }
 
-  function skipExercise() {
+  /** RN-04.6 / RN-04.16: Próximo sem nenhuma série marcada marca o exercício como pulado. */
+  function avancar() {
     if (!currentEx) return;
-    updateState(currentEx.nome, (s) => ({ ...s, skipped: true }));
+    const atual = states[currentEx.nome] ?? estadoVazio(currentEx);
+    if (contarFeitas(atual) === 0) updateState(currentEx.nome, (s) => ({ ...s, skipped: true }));
     nextExercise();
   }
 
@@ -469,7 +472,10 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
   function escolherModoData(modo: ModoData) {
     setModoData(modo);
     setSalvarErro(null);
-    if (modo === "hoje") setData(diaBR(0));
+    if (modo === "hoje") {
+      setData(diaBR(0));
+      setMudarData(false);
+    }
     if (modo === "ontem") setData(diaBR(1));
   }
 
@@ -480,8 +486,14 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
       <div style={{ marginTop: 14 }}>
         <Label as="p" id="rotulo-data">Dia do treino</Label>
         <p style={{ fontSize: 17, fontWeight: 600, color: "#111827", margin: "0 0 8px" }}>
-          {diaPorExtenso(data) || "Nenhum dia escolhido"}
+          {dataFalada(data) || "Nenhum dia escolhido"}
         </p>
+        {!mudarData ? (
+          <button type="button" onClick={() => setMudarData(true)} style={{ ...botaoSecundario, minHeight: 48, fontSize: 16 }}>
+            Treinei em outro dia
+          </button>
+        ) : (
+        <>
         <SessaoRow role="group" aria-labelledby="rotulo-data">
           {opcoes.map(([modo, texto]) => (
             <CycleChip
@@ -512,6 +524,8 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
               border: "1.5px solid #6b7280", borderRadius: 10, background: "#ffffff",
             }}
           />
+        )}
+        </>
         )}
         {erroData && (
           <p aria-live="polite" style={{ fontSize: 16, fontWeight: 600, color: "#b91c1c", margin: "8px 0 0" }}>
@@ -611,6 +625,9 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
 
     return (
       <ExerciseCard key={ex.nome}>
+        <ExSub style={{ fontSize: 15, fontWeight: 600, color: "#4b5563", margin: "0 0 4px" }}>
+          Exercício {currentIdx + 1} de {exercicios.length}
+        </ExSub>
         <ExName as="h2" style={{ fontSize: 20, fontWeight: 600, margin: "0 0 4px" }}>
           {ex.nome}
         </ExName>
@@ -666,14 +683,20 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
         />
 
         <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-          <BigBtn type="button" $variant="secundario" onClick={skipExercise} style={{ flex: 1 }}>
-            Pular
+          <BigBtn
+            type="button"
+            $variant="secundario"
+            onClick={prevExercise}
+            disabled={currentIdx === 0}
+            style={{ flex: 1, minHeight: 48 }}
+          >
+            Voltar
           </BigBtn>
           <BigBtn
             type="button"
             $variant={completo ? "concluido" : "primario"}
             data-destaque={String(completo)}
-            onClick={isLastExercise ? () => setMostrarRevisao(true) : nextExercise}
+            onClick={isLastExercise ? () => setMostrarRevisao(true) : avancar}
             style={{ flex: 2 }}
           >
             {isLastExercise ? "Ver Resumo" : "Próximo"}
@@ -757,7 +780,7 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
           </SessaoRow>
           {proximo && (
             <p style={{ fontSize: 14, color: "#4b5563", margin: "8px 0 0" }}>
-              Próximo da sequência: {proximo}
+              Treino sugerido: {proximo}
             </p>
           )}
           {renderDataTreino()}
@@ -780,17 +803,6 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
               </AvisoAvanco>
             )}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
-                <NavBtn type="button" onClick={prevExercise} disabled={currentIdx === 0} aria-label="Exercício anterior">
-                  ‹ Anterior
-                </NavBtn>
-                <span style={{ fontSize: 16, fontWeight: 600, color: "#4b5563", whiteSpace: "nowrap" }}>
-                  {currentIdx + 1} / {exercicios.length}
-                </span>
-                <NavBtn type="button" onClick={nextExercise} disabled={isLastExercise} aria-label="Próximo exercício">
-                  Próximo ›
-                </NavBtn>
-              </div>
               <BotaoLista type="button" onClick={abrirLista}>
                 Ver lista do treino
               </BotaoLista>

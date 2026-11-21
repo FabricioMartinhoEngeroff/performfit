@@ -67,7 +67,7 @@ e só então o código.
   1. o treino que estiver **em andamento** (com rascunho);
   2. senão, o **próximo da sequência** depois do último treino salvo (fez A → sugere B; depois do último, volta ao primeiro). Vale mesmo que o aluno tenha faltado dias: a sequência não depende do dia da semana;
   3. senão (nenhum treino salvo ainda), o **primeiro** treino da planilha.
-- **RN-03.3** O treino sugerido aparece marcado como **"Próximo"**. O aluno pode tocar em outro treino se quiser.
+- **RN-03.3** O treino sugerido aparece como **"Treino sugerido: Lower B"** (nunca "Próximo", para não confundir com o botão Próximo do exercício). O aluno pode tocar em outro treino se quiser.
 - **RN-03.4** Se o último treino salvo não existe mais no plano (ficha trocada), a sugestão volta ao primeiro treino.
 
 ## RN-04 — Registro do treino (aba Treinar)
@@ -77,7 +77,7 @@ e só então o código.
 - **RN-04.3** Tocar no checkbox marca a série; tocar de novo desmarca. O app mostra "X de N séries feitas".
 - **RN-04.4** Com todas as séries marcadas, aparece **"Exercício concluído"** e o botão **Próximo** fica verde e em destaque.
 - **RN-04.5** O aluno **pode avançar com séries faltando**: o app guarda o que ele fez (ex.: 2 de 3).
-- **RN-04.6** **Pular** marca o exercício como pulado e avança. Exercício pulado não gera execução, **exceto se tiver anotação** (RN-05.2): aí é gravado com 0 séries feitas.
+- **RN-04.6** **Não existe botão Pular** (RN-04.16). Tocar em **Próximo sem nenhuma série marcada** marca o exercício como **pulado** e avança; com séries marcadas, guarda o que foi feito (RN-04.5). Exercício pulado não gera execução, **exceto se tiver anotação** (RN-05.2): aí é gravado com 0 séries feitas. Marcar uma série num exercício pulado tira o "pulado".
 - **RN-04.7** No último exercício, **Próximo** vira **Ver Resumo**. A revisão lista cada exercício ("3 de 3 séries", "Pulado", "Nenhuma série marcada") e permite voltar para corrigir.
 - **RN-04.8** Salvar o mesmo treino na mesma data pede confirmação e **substitui** o registro daquele dia (não duplica).
 - **RN-04.9** É preciso ao menos 1 série marcada **ou** 1 anotação para salvar.
@@ -87,6 +87,7 @@ e só então o código.
 - **RN-04.13** **Barra de progresso do treino** no topo da lista e do exercício: **"X de N exercícios"**. Conta como feito o exercício com todas as séries marcadas ou pulado.
 - **RN-04.14** **Avança sozinho:** ao marcar a última série que faltava de um exercício, o app vai para o próximo e mostra **"✓ Leg press concluído"** com o botão **Voltar para Leg press**. No último exercício não avança (o botão Ver Resumo fica em destaque).
 - **RN-04.15** No exercício, os pontinhos de navegação foram trocados pelo botão **Ver lista do treino** (≥48px), que volta para a lista (RN-04.12).
+- **RN-04.16** **Um só "Próximo".** Como o app avança sozinho (RN-04.14), a barra de cima (`‹ Anterior  1/6  Próximo ›`) foi retirada. Embaixo do exercício ficam só dois botões: **Voltar** (secundário, desativado no primeiro exercício) e **Próximo** (grande; no último vira **Ver Resumo**). A posição aparece em texto acima do nome: **"Exercício 2 de 6"**. Na tela não aparece nenhum outro texto com "Próximo".
 
 ## RN-05 — Anotações do aluno
 
@@ -113,6 +114,7 @@ e só então o código.
   - mês passado sem séries no período: sem frase. A porcentagem é arredondada para inteiro.
 - **RN-06.11** **Anel de progresso** no topo da aba Semana: "2 de 3 treinos" num anel que enche conforme os treinos da semana (fica cheio e verde ao completar; não passa de cheio). Substitui a barra segmentada.
 - **RN-06.12** Todo gráfico tem os mesmos dados em texto para leitor de tela (tabela escondida), com título e semana a semana.
+- **RN-06.13** **Semana em palavras, numa linha só.** A navegação da aba Semana mostra o título **"Esta semana"**, **"Semana passada"** ou **"Há 3 semanas"** e, embaixo, as datas por extenso: **"2 a 8 de novembro"** (virando o mês: **"26 de outubro a 1 de novembro"**). Nada de `02/11 – 08/11`. As setas têm largura fixa (48px) e o texto não quebra em várias linhas. O mesmo texto por extenso vale para o calendário da aba Evolução (leitor de tela: `5 a 11 de outubro: completa`).
 
 ## RN-07 — Vídeos
 
@@ -167,9 +169,9 @@ e só então o código.
 
 ## RN-11 — Data do treino
 
-- **RN-11.1** A data é escolhida por botões grandes (≥48px): **Hoje** (padrão), **Ontem** e **Outro dia**. O aluno não digita a data.
-- **RN-11.2** **Outro dia** abre o seletor de data do próprio celular (`input type="date"`), que não deixa escolher depois de hoje.
-- **RN-11.3** A data escolhida aparece por extenso acima dos botões: `Quarta-feira, 04/11/2026`.
+- **RN-11.1** **Simples por padrão.** Quase sempre o aluno treinou hoje, então a tela mostra só uma linha, **"Hoje, quarta-feira, 4 de novembro"**, e o botão **"Treinei em outro dia"** (≥48px). Os botões de data ficam escondidos.
+- **RN-11.2** Tocar em **"Treinei em outro dia"** mostra os botões grandes (≥48px) **Hoje**, **Ontem** e **Outro dia**. **Outro dia** abre o seletor de data do próprio celular (`input type="date"`), que não deixa escolher depois de hoje. Tocar em **Hoje** volta para a linha simples. O aluno não digita a data.
+- **RN-11.3** A data aparece por extenso, sem números de mês: `Hoje, quarta-feira, 4 de novembro` / `Ontem, terça-feira, 3 de novembro` / `Sexta-feira, 30 de outubro`. O ano só aparece se não for o ano atual: `Segunda-feira, 29 de dezembro de 2025`.
 - **RN-11.4** Data vazia, inválida (ex.: 31/02) ou no futuro **não é trocada por hoje em silêncio**: o app avisa (`Escolha o dia do treino.` / `A data do treino não pode ser no futuro.`) e **não salva** até o aluno corrigir.
 
 ## RN-12 — Instalar no celular (PWA)

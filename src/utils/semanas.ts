@@ -1,4 +1,5 @@
 import type { Execucao } from "./execucoes";
+import { diaEMes } from "./datas";
 
 // ─── Regras de hábito do PerformFit ───────────────────────────────────────────
 // Semana = segunda a domingo. Treino = sessão + data com pelo menos 1 série feita.
@@ -51,13 +52,26 @@ const ddmm = (ts: number) => {
   return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
 
+/** RN-06.13: "2 a 8 de novembro" / "26 de outubro a 1 de novembro". */
+function semanaPorExtenso(inicioTs: number, fimTs: number): string {
+  const mesmoMes = new Date(inicioTs).getMonth() === new Date(fimTs).getMonth();
+  return mesmoMes ? `${new Date(inicioTs).getDate()} a ${diaEMes(fimTs)}` : `${diaEMes(inicioTs)} a ${diaEMes(fimTs)}`;
+}
+
+/** RN-06.13: "Esta semana" / "Semana passada" / "Há 3 semanas". */
+export function tituloSemana(deslocamento: number): string {
+  if (deslocamento === 0) return "Esta semana";
+  if (deslocamento === -1) return "Semana passada";
+  return `Há ${Math.abs(deslocamento)} semanas`;
+}
+
 /** Período que contém `ts`, deslocado `deslocamento` períodos (−1 = anterior). */
 export function periodo(tipo: Granularidade, ts: number, deslocamento = 0): Periodo {
   const d = new Date(ts);
   if (tipo === "semana") {
     const inicioTs = somarDias(inicioDaSemana(ts), deslocamento * 7);
     const fimTs = somarDias(inicioTs, 7);
-    return { inicioTs, fimTs, label: `${ddmm(inicioTs)} – ${ddmm(somarDias(inicioTs, 6))}` };
+    return { inicioTs, fimTs, label: semanaPorExtenso(inicioTs, somarDias(inicioTs, 6)) };
   }
   if (tipo === "mes") {
     const inicio = new Date(d.getFullYear(), d.getMonth() + deslocamento, 1);

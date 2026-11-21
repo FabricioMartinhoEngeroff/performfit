@@ -7,6 +7,12 @@
 > de onde o PerformFit foi derivado. Continuam valendo para o login (EF_01); as telas de
 > Gráficos, Volume, Relatórios e Powerlifter não existem mais no PerformFit.
 
+## PerformFit — Especificações Funcionais
+
+| EF | Assunto | Arquivo |
+|---|---|---|
+| EF_09 | Melhorias de experiência do aluno: gráficos, lista do treino, celebração, data, contraste, PWA (e pendências) | [EF_09_Melhorias_Experiencia.md](./EF/EF_09_Melhorias_Experiencia.md) |
+
 # GymWave Strength — Especificações Funcionais (fase 2)
 
 ---

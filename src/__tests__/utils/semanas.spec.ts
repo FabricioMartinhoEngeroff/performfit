@@ -10,6 +10,7 @@
 import { describe, it, expect } from "vitest";
 import {
   inicioDaSemana,
+  tituloSemana,
   treinosNaSemana,
   seriesPorGrupo,
   resumoSequencia,
@@ -78,8 +79,11 @@ describe("seriesPorGrupo", () => {
 
 describe("periodo", () => {
   it("semana, mês e ano com rótulo e deslocamento", () => {
-    expect(periodo("semana", dia(15, 10)).label).toBe("12/10 – 18/10");
-    expect(periodo("semana", dia(15, 10), -1).label).toBe("05/10 – 11/10");
+    // RN-06.13: semana por extenso, sem "12/10 – 18/10"
+    expect(periodo("semana", dia(15, 10)).label).toBe("12 a 18 de outubro");
+    expect(periodo("semana", dia(15, 10), -1).label).toBe("5 a 11 de outubro");
+    expect(periodo("semana", dia(28, 10)).label).toBe("26 de outubro a 1 de novembro");
+    expect(periodo("semana", dia(30, 12)).label).toBe("28 de dezembro a 3 de janeiro");
     expect(periodo("mes", dia(15, 10)).label).toBe("Outubro 2026");
     expect(periodo("mes", dia(15, 1), -1).label).toBe("Dezembro 2025");
     expect(periodo("ano", dia(15, 10)).label).toBe("2026");
@@ -242,5 +246,14 @@ describe("RN-06.10 fraseComparacao", () => {
       "Você fez o mesmo número de séries que no mesmo período do mês passado.",
     );
     expect(fraseComparacao({ atual: 4, anterior: 0, variacao: null })).toBeNull();
+  });
+});
+
+describe("RN-06.13 tituloSemana", () => {
+  it("esta, passada e há N semanas", () => {
+    expect(tituloSemana(0)).toBe("Esta semana");
+    expect(tituloSemana(-1)).toBe("Semana passada");
+    expect(tituloSemana(-2)).toBe("Há 2 semanas");
+    expect(tituloSemana(-10)).toBe("Há 10 semanas");
   });
 });

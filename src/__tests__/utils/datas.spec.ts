@@ -5,6 +5,7 @@ import { describe, it, expect } from "vitest";
 import {
   brParaIso,
   diaPorExtenso,
+  dataFalada,
   formatarBR,
   isoParaBR,
   parseDataBR,
@@ -58,5 +59,28 @@ describe("RN-11.4 validarDataTreino", () => {
 
   it("futuro não vale", () => {
     expect(validarDataTreino("05/11/2026", HOJE)).toBe("A data do treino não pode ser no futuro.");
+  });
+});
+
+describe("RN-11.3 dataFalada — por extenso, sem números de mês", () => {
+  const hoje = new Date(2026, 10, 4, 12).getTime(); // quarta 04/11/2026
+
+  it("hoje e ontem ganham a palavra na frente", () => {
+    expect(dataFalada("04/11/2026", hoje)).toBe("Hoje, quarta-feira, 4 de novembro");
+    expect(dataFalada("03/11/2026", hoje)).toBe("Ontem, terça-feira, 3 de novembro");
+  });
+
+  it("outros dias do ano: dia da semana e mês por extenso", () => {
+    expect(dataFalada("30/10/2026", hoje)).toBe("Sexta-feira, 30 de outubro");
+    expect(dataFalada("01/11/2026", hoje)).toBe("Domingo, 1 de novembro");
+  });
+
+  it("ano só aparece quando não é o ano atual", () => {
+    expect(dataFalada("29/12/2025", hoje)).toBe("Segunda-feira, 29 de dezembro de 2025");
+  });
+
+  it("data inválida → vazio", () => {
+    expect(dataFalada("", hoje)).toBe("");
+    expect(dataFalada("31/02/2026", hoje)).toBe("");
   });
 });

@@ -63,6 +63,11 @@ export const Texto = styled.p`
 `;
 
 const SetaBtn = styled.button`
+  /* RN-06.13: largura fixa — o estilo global de button (width: 100%) esticava as setas. */
+  width: 48px;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
   min-width: 48px;
   min-height: 48px;
   border-radius: 10px;
@@ -82,6 +87,8 @@ const SetaBtn = styled.button`
 
 export function NavPeriodo({
   label,
+  titulo,
+  rotuloGrupo,
   rotuloAnterior,
   rotuloProximo,
   onAnterior,
@@ -89,6 +96,9 @@ export function NavPeriodo({
   podeAvancar,
 }: {
   label: string;
+  /** RN-06.13: "Esta semana" / "Semana passada" acima das datas. */
+  titulo?: string;
+  rotuloGrupo?: string;
   rotuloAnterior: string;
   rotuloProximo: string;
   onAnterior: () => void;
@@ -96,9 +106,19 @@ export function NavPeriodo({
   podeAvancar: boolean;
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+    <div role="group" aria-label={rotuloGrupo} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
       <SetaBtn type="button" aria-label={rotuloAnterior} onClick={onAnterior}>‹</SetaBtn>
-      <span style={{ flex: 1, textAlign: "center", fontSize: 17, fontWeight: 600, color: "#111827" }}>{label}</span>
+      <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+        {titulo && <div style={{ fontSize: 18, fontWeight: 700, color: "#111827" }}>{titulo}</div>}
+        <span
+          style={{
+            display: "block", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+            fontSize: titulo ? 15 : 17, fontWeight: titulo ? 500 : 600, color: titulo ? "#4b5563" : "#111827",
+          }}
+        >
+          {label}
+        </span>
+      </div>
       <SetaBtn type="button" aria-label={rotuloProximo} onClick={onProximo} disabled={!podeAvancar}>›</SetaBtn>
     </div>
   );

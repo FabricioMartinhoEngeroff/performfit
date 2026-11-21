@@ -27,7 +27,7 @@ describe("Aba Semana", () => {
   it("RN-03.1 sem treino: 0 de 3 (planilha com 3 treinos) e incentivo", () => {
     planoDeTeste();
     render(<Semana />);
-    expect(screen.getByText("02/11 – 08/11")).toBeInTheDocument();
+    expect(screen.getByText("2 a 8 de novembro")).toBeInTheDocument();
     expect(screen.getByText("0 de 3 treinos")).toBeInTheDocument();
     expect(screen.getByText("Faltam 3 treinos para fechar a semana")).toBeInTheDocument();
   });
@@ -73,10 +73,35 @@ describe("Aba Semana", () => {
     render(<Semana />);
     expect(screen.getByRole("button", { name: "Próxima semana" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Semana anterior" }));
-    expect(screen.getByText("26/10 – 01/11")).toBeInTheDocument();
+    expect(screen.getByText("26 de outubro a 1 de novembro")).toBeInTheDocument();
     expect(within(barra("Peitoral")).getByText("9 séries")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Próxima semana" }));
-    expect(screen.getByText("02/11 – 08/11")).toBeInTheDocument();
+    expect(screen.getByText("2 a 8 de novembro")).toBeInTheDocument();
+  });
+
+  describe("RN-06.13 — semana em palavras, numa linha só", () => {
+    const nav = () => screen.getByRole("group", { name: "Escolher a semana" });
+
+    it("título Esta semana / Semana passada / Há 2 semanas, sem números com barra", () => {
+      render(<Semana />);
+      expect(within(nav()).getByText("Esta semana")).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Semana anterior" }));
+      expect(within(nav()).getByText("Semana passada")).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Semana anterior" }));
+      expect(within(nav()).getByText("Há 2 semanas")).toBeInTheDocument();
+      expect(within(nav()).getByText("19 a 25 de outubro")).toBeInTheDocument();
+      expect(nav().textContent).not.toMatch(/\d{2}\/\d{2}/);
+    });
+
+    it("datas não quebram linha e as setas têm largura fixa", () => {
+      render(<Semana />);
+      expect(getComputedStyle(within(nav()).getByText("2 a 8 de novembro")).whiteSpace).toBe("nowrap");
+      for (const nome of ["Semana anterior", "Próxima semana"]) {
+        const seta = screen.getByRole("button", { name: nome });
+        expect(getComputedStyle(seta).width).toBe("48px");
+        expect(getComputedStyle(seta).flexShrink).toBe("0");
+      }
+    });
   });
 
   describe("RN-06.11 — anel de progresso da semana", () => {

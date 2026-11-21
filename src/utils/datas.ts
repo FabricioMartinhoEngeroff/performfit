@@ -53,3 +53,29 @@ export function validarDataTreino(br: string, hojeTs = Date.now()): string | nul
   }
   return null;
 }
+
+const MESES = [
+  "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+  "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+];
+
+/** "4 de novembro" (com " de 2025" se `comAno`). */
+export function diaEMes(ts: number, comAno = false): string {
+  const d = new Date(ts);
+  return `${d.getDate()} de ${MESES[d.getMonth()]}${comAno ? ` de ${d.getFullYear()}` : ""}`;
+}
+
+/** RN-11.3: "Hoje, quarta-feira, 4 de novembro" / "Sexta-feira, 30 de outubro" / "…de 2025". */
+export function dataFalada(br: string, hojeTs = Date.now()): string {
+  const ts = parseDataBR(br);
+  if (ts === null) return "";
+  const d = new Date(ts);
+  const h = new Date(hojeTs);
+  const hoje = new Date(h.getFullYear(), h.getMonth(), h.getDate()).getTime();
+  const ontem = new Date(h.getFullYear(), h.getMonth(), h.getDate() - 1).getTime();
+  const semana = DIAS[d.getDay()]!;
+  const resto = diaEMes(ts, d.getFullYear() !== h.getFullYear());
+  if (ts === hoje) return `Hoje, ${semana.toLowerCase()}, ${resto}`;
+  if (ts === ontem) return `Ontem, ${semana.toLowerCase()}, ${resto}`;
+  return `${semana}, ${resto}`;
+}

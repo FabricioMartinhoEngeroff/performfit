@@ -51,9 +51,9 @@ describe("RN-04.10 — rascunho do treino", () => {
     fireEvent.click(series()[1]!);
 
     reabrir();
-    expect(screen.getByText("2 / 4")).toBeInTheDocument();
+    expect(screen.getByText("Exercício 2 de 4")).toBeInTheDocument();
     expect(series()[1]).toHaveAttribute("aria-checked", "true");
-    fireEvent.click(screen.getByRole("button", { name: "Exercício anterior" }));
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
     expect(series()[0]).toHaveAttribute("aria-checked", "true");
     expect(screen.getByLabelText("Como você estava neste exercício?")).toHaveValue("bem disposto");
   });
@@ -61,9 +61,9 @@ describe("RN-04.10 — rascunho do treino", () => {
   it("restaura exercício pulado", () => {
     render(<TreinoSessao />);
     comecar();
-    fireEvent.click(screen.getByRole("button", { name: "Pular" }));
+    fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
     reabrir();
-    fireEvent.click(screen.getByRole("button", { name: "Exercício anterior" }));
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
     expect(screen.getByText("Exercício pulado")).toBeInTheDocument();
   });
 
@@ -98,7 +98,7 @@ describe("RN-04.10 — rascunho do treino", () => {
     localStorage.setItem(DRAFT_KEY, "{quebrado");
     render(<TreinoSessao />);
     comecar();
-    expect(screen.getByText("1 / 4")).toBeInTheDocument();
+    expect(screen.getByText("Exercício 1 de 4")).toBeInTheDocument();
   });
 
   it("ignora rascunho de formato antigo (Top Set) sem quebrar", () => {
@@ -110,6 +110,6 @@ describe("RN-04.10 — rascunho do treino", () => {
     expect(screen.getByRole("button", { name: "Começar" })).toBeInTheDocument();
     comecar();
     expect(series().every((cb) => cb.getAttribute("aria-checked") === "false")).toBe(true);
-    expect(screen.getByText("1 / 4")).toBeInTheDocument();
+    expect(screen.getByText("Exercício 1 de 4")).toBeInTheDocument();
   });
 });

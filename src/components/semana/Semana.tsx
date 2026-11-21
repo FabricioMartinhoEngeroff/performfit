@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { carregarExecucoes } from "../../utils/execucoes";
 import { gruposDoPlano } from "../../utils/planoAtual";
 import { diasPorSemana } from "../../utils/planoPerformfit";
-import { periodo, resumoSequencia, seriesPorGrupo, treinosNaSemana } from "../../utils/semanas";
+import { periodo, resumoSequencia, seriesPorGrupo, tituloSemana, treinosNaSemana } from "../../utils/semanas";
 import { AnelProgresso, Cartao, Conteudo, Destaque, GruposBarras, NavPeriodo, Rotulo, Tela, Texto, Titulo, Topo } from "../progresso/ui";
 import { plural } from "../../utils/plural";
 
@@ -26,11 +26,13 @@ export default function Semana() {
   return (
     <Tela>
       <Topo>
-        <Titulo>{ehAtual ? "Esta semana" : "Semana"}</Titulo>
+        <Titulo>Semana</Titulo>
       </Topo>
       <Conteudo>
         <NavPeriodo
           label={semana.label}
+          titulo={tituloSemana(deslocamento)}
+          rotuloGrupo="Escolher a semana"
           rotuloAnterior="Semana anterior"
           rotuloProximo="Próxima semana"
           onAnterior={() => setDeslocamento((d) => d - 1)}

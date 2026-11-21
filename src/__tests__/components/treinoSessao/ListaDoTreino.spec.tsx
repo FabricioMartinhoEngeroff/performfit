@@ -43,14 +43,14 @@ describe("Ver o treino inteiro e o que falta", () => {
       expect(screen.queryByRole("button", { name: "Continuar" })).not.toBeInTheDocument();
       fireEvent.click(screen.getByRole("button", { name: "Começar" }));
       expect(screen.getByRole("heading", { name: "Leg press" })).toBeInTheDocument();
-      expect(screen.getByText("1 / 4")).toBeInTheDocument();
+      expect(screen.getByText("Exercício 1 de 4")).toBeInTheDocument();
     });
 
     it("tocar num exercício da lista abre aquele exercício", () => {
       render(<TreinoSessao />);
       fireEvent.click(item("Supino máquina"));
       expect(screen.getByRole("heading", { name: "Supino máquina" })).toBeInTheDocument();
-      expect(screen.getByText("3 / 4")).toBeInTheDocument();
+      expect(screen.getByText("Exercício 3 de 4")).toBeInTheDocument();
     });
 
     it("mostra ✓ nos concluídos, 2/3 nos parciais e Pulado nos pulados", () => {
@@ -60,7 +60,7 @@ describe("Ver o treino inteiro e o que falta", () => {
       fireEvent.click(series()[1]!);                                  // Leg press 2/3
       fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
       marcarTodas();                                                  // Cadeira flexora 2/2 (avança)
-      fireEvent.click(screen.getByRole("button", { name: "Pular" })); // Supino pulado
+      fireEvent.click(screen.getByRole("button", { name: "Próximo" })); // Supino: nada marcado → pulado
       verLista();
 
       expect(item("Leg press")).toHaveAccessibleName("Leg press, 2 de 3 séries");
@@ -109,7 +109,7 @@ describe("Ver o treino inteiro e o que falta", () => {
       marcarTodas();                                                  // Leg press concluído
       fireEvent.click(series()[0]!);                                  // Cadeira flexora 1/2
       fireEvent.click(screen.getByRole("button", { name: "Próximo" }));
-      fireEvent.click(screen.getByRole("button", { name: "Pular" })); // Supino pulado
+      fireEvent.click(screen.getByRole("button", { name: "Próximo" })); // Supino: nada marcado → pulado
       expect(progresso()).toHaveAttribute("aria-valuenow", "2");
       expect(screen.getByText("2 de 4 exercícios")).toBeInTheDocument();
       verLista();
