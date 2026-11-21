@@ -14,6 +14,9 @@ import {
   seriesPorGrupo,
   resumoSequencia,
   periodo,
+  ultimasSemanas,
+  comparacaoMensal,
+  fraseComparacao,
 } from "../../utils/semanas";
 import type { Execucao } from "../../utils/execucoes";
 
@@ -155,5 +158,89 @@ describe("resumoSequencia", () => {
     expect(r.recorde).toBe(3);
     expect(r.atual).toBe(2);
     expect(r.total).toBe(5);
+  });
+});
+
+// ─── Gráficos da aba Evolução (RN-06.9, RN-06.10) ────────────────────────────
+
+describe("RN-06.9 / RN-06.10 ultimasSemanas", () => {
+  const hoje = dia(4, 11); // quarta 04/11/2026 — semana atual começa 02/11
+
+  it("devolve sempre N semanas terminando na atual, com 0 nas semanas sem treino", () => {
+    const r = ultimasSemanas([], 12, hoje);
+    expect(r).toHaveLength(12);
+    expect(r[11]).toEqual({ inicioTs: new Date(2026, 10, 2).getTime(), label: "02/11", treinos: 0, series: 0 });
+    expect(r[0]!.label).toBe("17/08");
+    expect(r.every((s) => s.treinos === 0 && s.series === 0)).toBe(true);
+  });
+
+  it("conta treinos (sessão + data) e soma séries de cada semana", () => {
+    const r = ultimasSemanas(
+      [
+        ...treino(2, 11, "UA", { Peitoral: 3, Costas: 2 }),
+        ...treino(3, 11, "LA", { Quadríceps: 4 }),
+        ...treino(27, 10, "UA", { Peitoral: 1 }),
+      ],
+      3,
+      hoje,
+    );
+    expect(r.map((s) => [s.label, s.treinos, s.series])).toEqual([
+      ["19/10", 0, 0],
+      ["26/10", 1, 1],
+      ["02/11", 2, 9],
+    ]);
+  });
+
+  it("ignora execuções sem série (só anotação) e semanas fora da janela", () => {
+    const r = ultimasSemanas(
+      [...treino(2, 11, "UA", { Peitoral: 0 }), ...treino(1, 6, "UA", { Peitoral: 5 })],
+      12,
+      hoje,
+    );
+    expect(r.reduce((t, s) => t + s.treinos + s.series, 0)).toBe(0);
+  });
+});
+
+describe("RN-06.10 comparacaoMensal", () => {
+  it("mês atual até hoje contra o mês passado até o mesmo dia", () => {
+    const execs = [
+      ...treino(2, 11, "UA", { Peitoral: 10 }),
+      ...treino(4, 11, "UA", { Peitoral: 8 }),   // hoje: entra
+      ...treino(5, 11, "UA", { Peitoral: 50 }),  // depois de hoje: não entra
+      ...treino(3, 10, "UA", { Peitoral: 15 }),
+      ...treino(4, 10, "UA", { Peitoral: 0 }),
+      ...treino(20, 10, "UA", { Peitoral: 40 }), // depois do dia 4 em outubro: não entra
+    ];
+    expect(comparacaoMensal(execs, dia(4, 11))).toEqual({ atual: 18, anterior: 15, variacao: 20 });
+  });
+
+  it("arredonda a porcentagem para inteiro e aceita queda", () => {
+    const execs = [...treino(1, 11, "UA", { Peitoral: 2 }), ...treino(1, 10, "UA", { Peitoral: 3 })];
+    expect(comparacaoMensal(execs, dia(4, 11)).variacao).toBe(-33);
+  });
+
+  it("mês passado sem séries no período: variação nula", () => {
+    const execs = treino(1, 11, "UA", { Peitoral: 2 });
+    expect(comparacaoMensal(execs, dia(4, 11))).toEqual({ atual: 2, anterior: 0, variacao: null });
+  });
+
+  it("dia 31 compara com o mês passado inteiro quando ele é mais curto", () => {
+    const execs = [...treino(30, 9, "UA", { Peitoral: 4 }), ...treino(31, 10, "UA", { Peitoral: 4 })];
+    expect(comparacaoMensal(execs, dia(31, 10))).toEqual({ atual: 4, anterior: 4, variacao: 0 });
+  });
+});
+
+describe("RN-06.10 fraseComparacao", () => {
+  it("mais, menos, igual e sem base", () => {
+    expect(fraseComparacao({ atual: 18, anterior: 15, variacao: 18 })).toBe(
+      "Você fez 18% mais séries que no mesmo período do mês passado.",
+    );
+    expect(fraseComparacao({ atual: 2, anterior: 3, variacao: -12 })).toBe(
+      "Você fez 12% menos séries que no mesmo período do mês passado.",
+    );
+    expect(fraseComparacao({ atual: 4, anterior: 4, variacao: 0 })).toBe(
+      "Você fez o mesmo número de séries que no mesmo período do mês passado.",
+    );
+    expect(fraseComparacao({ atual: 4, anterior: 0, variacao: null })).toBeNull();
   });
 });

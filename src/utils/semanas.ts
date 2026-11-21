@@ -155,3 +155,61 @@ export function resumoSequencia(execs: Execucao[], meta: number, hojeTs = Date.n
 
   return { atual: corrente, recorde, total, semanaAtual, semanas };
 }
+
+// ─── Dados dos gráficos da aba Evolução (RN-06.9, RN-06.10) ──────────────────
+
+export interface PontoSemana {
+  inicioTs: number;
+  /** dd/mm da segunda-feira. */
+  label: string;
+  treinos: number;
+  series: number;
+}
+
+/** Últimas `n` semanas (a atual é a última), com 0 nas semanas sem treino. */
+export function ultimasSemanas(execs: Execucao[], n: number, hojeTs = Date.now()): PontoSemana[] {
+  const atual = inicioDaSemana(hojeTs);
+  return Array.from({ length: n }, (_, i) => {
+    const inicioTs = somarDias(atual, (i - n + 1) * 7);
+    const fimTs = somarDias(inicioTs, 7);
+    let series = 0;
+    for (const e of execs) {
+      if (e.seriesFeitas > 0 && e.dataTs >= inicioTs && e.dataTs < fimTs) series += e.seriesFeitas;
+    }
+    return { inicioTs, label: ddmm(inicioTs), treinos: treinosNoPeriodo(execs, inicioTs, fimTs), series };
+  });
+}
+
+export interface ComparacaoMensal {
+  atual: number;
+  anterior: number;
+  /** Variação em % (inteiro); null quando o mês passado não tem séries no período. */
+  variacao: number | null;
+}
+
+function somarSeries(execs: Execucao[], deTs: number, ateTs: number): number {
+  let total = 0;
+  for (const e of execs) if (e.seriesFeitas > 0 && e.dataTs >= deTs && e.dataTs < ateTs) total += e.seriesFeitas;
+  return total;
+}
+
+/** Mês atual até hoje contra o mês passado até o mesmo dia (limitado ao fim dele). */
+export function comparacaoMensal(execs: Execucao[], hojeTs = Date.now()): ComparacaoMensal {
+  const h = new Date(hojeTs);
+  const inicioMes = new Date(h.getFullYear(), h.getMonth(), 1).getTime();
+  const fimHoje = new Date(h.getFullYear(), h.getMonth(), h.getDate() + 1).getTime();
+  const inicioAnterior = new Date(h.getFullYear(), h.getMonth() - 1, 1).getTime();
+  const fimAnterior = Math.min(new Date(h.getFullYear(), h.getMonth() - 1, h.getDate() + 1).getTime(), inicioMes);
+
+  const atual = somarSeries(execs, inicioMes, fimHoje);
+  const anterior = somarSeries(execs, inicioAnterior, fimAnterior);
+  const variacao = anterior > 0 ? Math.round(((atual - anterior) / anterior) * 100) : null;
+  return { atual, anterior, variacao: Object.is(variacao, -0) ? 0 : variacao };
+}
+
+export function fraseComparacao(c: ComparacaoMensal): string | null {
+  if (c.variacao === null) return null;
+  const fim = "séries que no mesmo período do mês passado.";
+  if (c.variacao === 0) return `Você fez o mesmo número de ${fim}`;
+  return `Você fez ${Math.abs(c.variacao)}% ${c.variacao > 0 ? "mais" : "menos"} ${fim}`;
+}

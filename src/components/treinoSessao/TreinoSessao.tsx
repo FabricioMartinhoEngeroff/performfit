@@ -33,11 +33,19 @@ import {
   ProgressoSeries,
   BigBtn,
   NavBtn,
+  ProgressoTreino,
+  BarraTrilho,
+  BarraPreenchida,
+  ListaExercicios,
+  ItemExercicio,
+  AvisoAvanco,
+  BotaoLista,
 } from "./TreinoSessao.styles";
 import { ExerciseGif } from "./ExerciseGif";
 import ImportarPlano from "../plano/ImportarPlano";
 
 // Aba Treinar — regras em docs/REGRAS_DE_NEGOCIO.md (RN-02.5, RN-03, RN-04, RN-05).
+// RN-04.12 a RN-04.15: lista do treino, barra de progresso e avanço automático.
 
 // ─── Estado de um exercício no treino em andamento ───────────────────────────
 // O aluno não anota peso: marca um checkbox por série válida (feitas[i]).
@@ -52,13 +60,17 @@ interface Andamento {
   sessao: string | null;
   states: Record<string, ExerciseState>;
   idx: number;
+  /** RN-04.12: mostrando a lista do treino (em vez do exercício atual). */
+  lista: boolean;
+  /** RN-04.14: exercício que acabou de ser concluído e fez o app avançar sozinho. */
+  avancouDe: string | null;
 }
 
 interface TreinoSessaoProps {
   onUnsavedChanges?: (has: boolean) => void;
 }
 
-const SEM_SESSAO: Andamento = { sessao: null, states: {}, idx: 0 };
+const SEM_SESSAO: Andamento = { sessao: null, states: {}, idx: 0, lista: false, avancouDe: null };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -83,6 +95,22 @@ function estadoVazio(ex: ExercicioPlano): ExerciseState {
 
 const temProgresso = (s: ExerciseState) => s.skipped || s.obs.trim() !== "" || s.feitas.some(Boolean);
 const contarFeitas = (s: ExerciseState | undefined) => s?.feitas.filter(Boolean).length ?? 0;
+
+/** RN-04.13: concluído = todas as séries marcadas ou pulado. */
+const estaFeito = (s: ExerciseState | undefined) =>
+  !!s && (s.skipped || (s.feitas.length > 0 && s.feitas.every(Boolean)));
+
+type EstadoItem = "concluido" | "parcial" | "pulado" | "novo";
+
+/** RN-04.12: como o exercício aparece na lista do treino. */
+function estadoNaLista(s: ExerciseState | undefined): { estado: EstadoItem; marca: string; falado: string } {
+  if (s?.skipped) return { estado: "pulado", marca: "Pulado", falado: "pulado" };
+  const feitas = contarFeitas(s);
+  const total = s?.feitas.length ?? 0;
+  if (total > 0 && feitas === total) return { estado: "concluido", marca: "✓", falado: "concluído" };
+  if (feitas > 0) return { estado: "parcial", marca: `${feitas}/${total}`, falado: `${feitas} de ${total} séries` };
+  return { estado: "novo", marca: "", falado: "não começado" };
+}
 
 /** RN-05.3: anotação mais recente do exercício, em qualquer treino. */
 function ultimaAnotacao(execs: Execucao[], exercicio: string): string | null {
@@ -138,7 +166,7 @@ function abrirSessao(sessao: string): Andamento {
   for (const ex of exercicios) states[ex.nome] = restaurarEstado(ex, draftStates?.[ex.nome]);
   const idxRascunho = draftStates && typeof draft?.currentIdx === "number" ? draft.currentIdx : 0;
   const idx = Math.min(Math.max(0, Math.floor(idxRascunho)), Math.max(0, exercicios.length - 1));
-  return { sessao, states, idx };
+  return { sessao, states, idx, lista: true, avancouDe: null };
 }
 
 /** RN-03.2: em andamento → próximo da sequência → primeiro. */
@@ -151,7 +179,7 @@ function sugestao(plano: Plano | null): string | null {
 
 export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {}) {
   const [plano, setPlano] = useState(() => carregarPlano());
-  const [{ sessao, states, idx: currentIdx }, setAndamento] = useState<Andamento>(() => {
+  const [{ sessao, states, idx: currentIdx, lista: mostrarLista, avancouDe }, setAndamento] = useState<Andamento>(() => {
     const s = sugestao(plano);
     return s ? abrirSessao(s) : SEM_SESSAO;
   });
@@ -207,7 +235,11 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
   }
 
   function irPara(idx: number) {
-    setAndamento((a) => ({ ...a, idx }));
+    setAndamento((a) => ({ ...a, idx, lista: false, avancouDe: null }));
+  }
+
+  function abrirLista() {
+    setAndamento((a) => ({ ...a, lista: true, avancouDe: null }));
   }
 
   function updateState(nome: string, mudar: (s: ExerciseState) => ExerciseState) {
@@ -216,11 +248,17 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
 
   function alternarSerie(i: number) {
     if (!currentEx) return;
-    updateState(currentEx.nome, (s) => ({
-      ...s,
-      skipped: false,
-      feitas: s.feitas.map((v, j) => (j === i ? !v : v)),
-    }));
+    const nome = currentEx.nome;
+    const ultimo = exercicios.length - 1;
+    setAndamento((a) => {
+      const antes = a.states[nome]!;
+      const depois = { ...antes, skipped: false, feitas: antes.feitas.map((v, j) => (j === i ? !v : v)) };
+      const states = { ...a.states, [nome]: depois };
+      // RN-04.14: marcou a última série que faltava → avança sozinho (menos no último exercício).
+      const completou = depois.feitas.every(Boolean) && !antes.feitas.every(Boolean);
+      if (completou && a.idx < ultimo) return { ...a, states, idx: a.idx + 1, avancouDe: nome };
+      return { ...a, states };
+    });
   }
 
   function nextExercise() {
@@ -238,8 +276,7 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
   }
 
   function isExerciseDone(nome: string): boolean {
-    const s = states[nome];
-    return !!s && (s.skipped || (s.feitas.length > 0 && s.feitas.every(Boolean)));
+    return estaFeito(states[nome]);
   }
 
   function handleSalvarTreino(forcarSubstituicao = false) {
@@ -382,6 +419,63 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
         <button type="button" onClick={() => setMostrarRevisao(false)} style={botaoSecundario}>
           Voltar ao exercício
         </button>
+      </Card>
+    );
+  }
+
+  function renderProgresso() {
+    const total = exercicios.length;
+    const feitos = exercicios.filter((ex) => isExerciseDone(ex.nome)).length;
+    const texto = `${feitos} de ${plural(total, "exercício", "exercícios")}`;
+    return (
+      <ProgressoTreino>
+        <p aria-hidden="true">{texto}</p>
+        <BarraTrilho
+          role="progressbar"
+          aria-label="Progresso do treino"
+          aria-valuemin={0}
+          aria-valuemax={total}
+          aria-valuenow={feitos}
+          aria-valuetext={texto}
+        >
+          <BarraPreenchida $pct={total ? (feitos / total) * 100 : 0} />
+        </BarraTrilho>
+      </ProgressoTreino>
+    );
+  }
+
+  function renderLista() {
+    const emAndamento = Object.values(states).some(temProgresso);
+    return (
+      <Card>
+        <Label>Seu treino de hoje</Label>
+        {renderProgresso()}
+        <ListaExercicios aria-label="Exercícios do treino">
+          {exercicios.map((ex, idx) => {
+            const { estado, marca, falado } = estadoNaLista(states[ex.nome]);
+            return (
+              <li key={ex.nome}>
+                <ItemExercicio
+                  type="button"
+                  $estado={estado}
+                  aria-label={`${ex.nome}, ${falado}`}
+                  onClick={() => irPara(idx)}
+                >
+                  <span>{ex.nome}</span>
+                  <span>{marca}</span>
+                </ItemExercicio>
+              </li>
+            );
+          })}
+        </ListaExercicios>
+        <BigBtn
+          type="button"
+          $variant="primario"
+          onClick={() => irPara(emAndamento ? currentIdx : 0)}
+          style={{ width: "100%" }}
+        >
+          {emAndamento ? "Continuar" : "Começar"}
+        </BigBtn>
       </Card>
     );
   }
@@ -548,8 +642,19 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
 
         {sessao && mostrarRevisao && renderRevisao()}
 
-        {sessao && exercicios.length > 0 && !mostrarRevisao && (
+        {sessao && exercicios.length > 0 && !mostrarRevisao && mostrarLista && renderLista()}
+
+        {sessao && exercicios.length > 0 && !mostrarRevisao && !mostrarLista && (
           <>
+            {renderProgresso()}
+            {avancouDe && (
+              <AvisoAvanco aria-live="polite">
+                <span>✓ {avancouDe} concluído</span>
+                <button type="button" onClick={() => irPara(currentIdx - 1)}>
+                  Voltar para {avancouDe}
+                </button>
+              </AvisoAvanco>
+            )}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
                 <NavBtn type="button" onClick={prevExercise} disabled={currentIdx === 0} aria-label="Exercício anterior">
@@ -562,21 +667,9 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
                   Próximo ›
                 </NavBtn>
               </div>
-
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", maxWidth: 320 }}>
-                {exercicios.map((ex, idx) => (
-                  <div
-                    key={ex.nome}
-                    onClick={() => irPara(idx)}
-                    title={`${ex.nome}${isExerciseDone(ex.nome) ? " ✓" : ""}`}
-                    style={{
-                      width: 14, height: 14, borderRadius: "50%", cursor: "pointer", flexShrink: 0,
-                      background: idx === currentIdx ? "#2563eb" : isExerciseDone(ex.nome) ? "#16a34a" : "#d1d5db",
-                      border: idx === currentIdx ? "2px solid #1d4ed8" : "2px solid transparent",
-                    }}
-                  />
-                ))}
-              </div>
+              <BotaoLista type="button" onClick={abrirLista}>
+                Ver lista do treino
+              </BotaoLista>
             </div>
 
             {currentEx && renderExercicio(currentEx)}

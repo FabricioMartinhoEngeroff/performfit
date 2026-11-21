@@ -3,10 +3,10 @@ import { carregarExecucoes } from "../../utils/execucoes";
 import { gruposDoPlano } from "../../utils/planoAtual";
 import { diasPorSemana } from "../../utils/planoPerformfit";
 import { periodo, resumoSequencia, seriesPorGrupo, treinosNaSemana } from "../../utils/semanas";
-import { Cartao, Conteudo, Destaque, GruposBarras, NavPeriodo, Rotulo, Tela, Texto, Titulo, Topo } from "../progresso/ui";
+import { AnelProgresso, Cartao, Conteudo, Destaque, GruposBarras, NavPeriodo, Rotulo, Tela, Texto, Titulo, Topo } from "../progresso/ui";
 import { plural } from "../../utils/plural";
 
-/** Aba Semana: treinos da semana contra a meta e séries por grupo muscular. */
+/** Aba Semana: treinos da semana contra a meta (anel, RN-06.11) e séries por grupo muscular. */
 export default function Semana() {
   const [deslocamento, setDeslocamento] = useState(0);
   const [agora] = useState(() => Date.now());
@@ -40,17 +40,11 @@ export default function Semana() {
 
         <Cartao aria-label="Treinos da semana">
           <Rotulo>Treinos</Rotulo>
-          <Destaque $cor={completa ? "#16a34a" : undefined}>{treinos} de {meta} treinos</Destaque>
-          <div style={{ display: "flex", gap: 8, margin: "10px 0" }} aria-hidden="true">
-            {Array.from({ length: Math.max(meta, treinos) }, (_, i) => (
-              <div
-                key={i}
-                style={{
-                  flex: 1, height: 14, borderRadius: 7,
-                  background: i < treinos ? "#16a34a" : "#e5e7eb",
-                }}
-              />
-            ))}
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 6 }}>
+            <AnelProgresso feitos={treinos} meta={meta} rotulo="Treinos da semana" />
+            <Destaque $cor={completa ? "#16a34a" : undefined} style={{ margin: 0 }}>
+              {treinos} de {meta} treinos
+            </Destaque>
           </div>
           {completa ? (
             <Texto style={{ color: "#16a34a", fontWeight: 700 }}>Semana completa!</Texto>

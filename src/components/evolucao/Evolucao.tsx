@@ -1,16 +1,24 @@
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { carregarExecucoes } from "../../utils/execucoes";
 import { gruposDoPlano } from "../../utils/planoAtual";
 import { diasPorSemana } from "../../utils/planoPerformfit";
 import {
-    periodo,
+  comparacaoMensal,
+  fraseComparacao,
+  periodo,
   resumoSequencia,
+  ultimasSemanas,
   seriesPorGrupo,
   treinosNoPeriodo,
   type StatusSemana,
 } from "../../utils/semanas";
 import { Cartao, Conteudo, GruposBarras, NavPeriodo, Rotulo, Tela, Texto, Titulo, Topo } from "../progresso/ui";
 import { plural } from "../../utils/plural";
+
+// recharts é pesado: só baixa quando o aluno abre a Evolução.
+const GraficoTreinos = lazy(() => import("./Graficos").then((m) => ({ default: m.GraficoTreinos })));
+const GraficoSeries = lazy(() => import("./Graficos").then((m) => ({ default: m.GraficoSeries })));
+const carregandoGrafico = <div style={{ height: 200 }} aria-busy="true" />;
 
 const SEMANAS_NO_CALENDARIO = 12;
 
@@ -35,7 +43,7 @@ function Numero({ titulo, valor, sufixo, cor }: { titulo: string; valor: number;
   );
 }
 
-/** Aba Evolução: sequência de semanas, calendário e séries por grupo no mês/ano. */
+/** Aba Evolução: sequência, calendário, gráficos semanais (RN-06.9/10) e séries por grupo no mês/ano. */
 export default function Evolucao() {
   const [tipo, setTipo] = useState<"mes" | "ano">("mes");
   const [deslocamento, setDeslocamento] = useState(0);
@@ -44,6 +52,8 @@ export default function Evolucao() {
   const meta = useMemo(() => diasPorSemana(), []);
   const grupos = useMemo(() => gruposDoPlano(), []);
   const seq = useMemo(() => resumoSequencia(execs, meta, agora), [execs, meta, agora]);
+  const semanasGrafico = useMemo(() => ultimasSemanas(execs, SEMANAS_NO_CALENDARIO, agora), [execs, agora]);
+  const frase = useMemo(() => fraseComparacao(comparacaoMensal(execs, agora)), [execs, agora]);
 
   if (execs.length === 0) {
     return (
@@ -127,6 +137,23 @@ export default function Evolucao() {
               </span>
             ))}
           </div>
+        </Cartao>
+
+        <Cartao aria-label="Treinos por semana">
+          <Rotulo>Treinos por semana</Rotulo>
+          <Suspense fallback={carregandoGrafico}>
+            <GraficoTreinos semanas={semanasGrafico} meta={meta} />
+          </Suspense>
+        </Cartao>
+
+        <Cartao aria-label="Séries por semana">
+          <Rotulo>Séries por semana</Rotulo>
+          {frase && (
+            <Texto style={{ margin: "0 0 10px", fontWeight: 600, color: "#111827" }}>{frase}</Texto>
+          )}
+          <Suspense fallback={carregandoGrafico}>
+            <GraficoSeries semanas={semanasGrafico} />
+          </Suspense>
         </Cartao>
 
         <Cartao aria-label="Séries por grupo muscular no período">

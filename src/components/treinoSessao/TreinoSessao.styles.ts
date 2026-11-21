@@ -515,3 +515,113 @@ export const NavBtn = styled.button`
     cursor: default;
   }
 `;
+
+/* ── PerformFit: lista do treino e progresso (RN-04.12 a RN-04.15) ── */
+
+export const ProgressoTreino = styled.div`
+  margin: 0 0 12px;
+
+  & > p {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+  }
+`;
+
+export const BarraTrilho = styled.div`
+  height: 12px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+`;
+
+export const BarraPreenchida = styled.div<{ $pct: number }>`
+  height: 100%;
+  width: ${(p) => p.$pct}%;
+  background: #16a34a;
+  border-radius: 999px;
+  transition: width 0.2s;
+`;
+
+export const ListaExercicios = styled.ul`
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+export const ItemExercicio = styled.button<{ $estado: "concluido" | "parcial" | "pulado" | "novo" }>`
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid ${(p) => (p.$estado === "concluido" ? "#86efac" : "#e5e7eb")};
+  background: ${(p) => (p.$estado === "concluido" ? "#f0fdf4" : "#ffffff")};
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  & > span:first-child {
+    flex: 1;
+    min-width: 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  & > span:last-child {
+    flex-shrink: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: ${(p) =>
+      p.$estado === "concluido" ? "#16a34a" : p.$estado === "parcial" ? "#2563eb" : "#9ca3af"};
+  }
+`;
+
+export const AvisoAvanco = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  font-size: 16px;
+  font-weight: 600;
+  color: #166534;
+
+  & > button {
+    min-height: 48px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1.5px solid #16a34a;
+    background: #ffffff;
+    color: #166534;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+`;
+
+export const BotaoLista = styled.button`
+  width: 100%;
+  min-height: 48px;
+  margin-top: 4px;
+  border-radius: 10px;
+  border: 1.5px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+`;

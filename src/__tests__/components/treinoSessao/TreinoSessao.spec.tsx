@@ -11,6 +11,8 @@ import { planoDeTeste } from "../../helpers/planoDeTeste";
 const series = () => screen.queryAllByRole("checkbox", { name: /^Série \d$/ });
 const botaoProximo = () => screen.getByRole("button", { name: "Próximo" });
 const chip = (nome: string) => screen.getByRole("button", { name: nome });
+/** RN-04.12: o treino abre na lista; Começar/Continuar entra no exercício. */
+const comecar = () => fireEvent.click(screen.getByRole("button", { name: /^(Começar|Continuar)$/ }));
 
 function marcarTodas() {
   series().forEach((cb) => {
@@ -63,6 +65,7 @@ describe("TreinoSessao — PerformFit", () => {
       render(<TreinoSessao />);
       expect(chip("Treino A")).toHaveAttribute("aria-pressed", "true");
       expect(screen.getByText("Próximo da sequência: Treino A")).toBeInTheDocument();
+      comecar();
       expect(screen.getByRole("heading", { name: "Leg press" })).toBeInTheDocument();
       expect(screen.getByText("1 / 4")).toBeInTheDocument();
     });
@@ -71,12 +74,14 @@ describe("TreinoSessao — PerformFit", () => {
       registrarTreino([feito("Treino A", 6)]);
       render(<TreinoSessao />);
       expect(chip("Treino B")).toHaveAttribute("aria-pressed", "true");
+      comecar();
       expect(screen.getByRole("heading", { name: "Puxada" })).toBeInTheDocument();
     });
 
     it("RN-03.2 treino em andamento tem prioridade", () => {
       render(<TreinoSessao />);
       fireEvent.click(chip("Treino C"));
+      comecar();
       fireEvent.click(series()[0]!);
       cleanup();
       render(<TreinoSessao />);
@@ -87,6 +92,7 @@ describe("TreinoSessao — PerformFit", () => {
       render(<TreinoSessao />);
       fireEvent.click(chip("Treino C"));
       expect(chip("Treino C")).toHaveAttribute("aria-pressed", "true");
+      comecar();
       expect(screen.getByRole("heading", { name: "Agachamento" })).toBeInTheDocument();
     });
   });
@@ -96,6 +102,7 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("nome, grupo, séries · repetições, explicação e vídeo", () => {
       render(<TreinoSessao />);
+      comecar();
       expect(screen.getByText("Quadríceps")).toBeInTheDocument();
       expect(screen.getByText("3 séries · 10–12 repetições")).toBeInTheDocument();
       expect(screen.getByText("Desça até 90°")).toBeInTheDocument();
@@ -107,6 +114,7 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("repetições em texto livre e sem repetições", () => {
       render(<TreinoSessao />);
+      comecar();
       fireEvent.click(botaoProximo());
       fireEvent.click(botaoProximo());
       expect(screen.getByText("1 série")).toBeInTheDocument();
@@ -116,6 +124,7 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("RN-04.1 não tem campo de peso ou repetições", () => {
       render(<TreinoSessao />);
+      comecar();
       expect(screen.queryAllByRole("spinbutton")).toHaveLength(0);
       expect(screen.queryByLabelText(/kg/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/Top Set|Back-off/)).not.toBeInTheDocument();
@@ -127,6 +136,7 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("um checkbox por série da planilha (3, 2, 1, 4)", () => {
       render(<TreinoSessao />);
+      comecar();
       const contagens: number[] = [];
       for (let i = 0; i < 4; i++) {
         contagens.push(series().length);
@@ -137,6 +147,7 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("tocar marca, tocar de novo desmarca, e mostra o progresso", () => {
       render(<TreinoSessao />);
+      comecar();
       const [s1] = series();
       expect(s1).toHaveAttribute("aria-checked", "false");
       fireEvent.click(s1!);
@@ -148,16 +159,18 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("todas marcadas → 'Exercício concluído' e Próximo em destaque", () => {
       render(<TreinoSessao />);
+      comecar();
       expect(botaoProximo()).toHaveAttribute("data-destaque", "false");
-      marcarTodas();
+      marcarTodas();                                                              // avança sozinho (RN-04.14)
+      fireEvent.click(screen.getByRole("button", { name: "Exercício anterior" }));
       expect(screen.getByText("Exercício concluído")).toBeInTheDocument();
       expect(botaoProximo()).toHaveAttribute("data-destaque", "true");
     });
 
     it("cada exercício guarda as próprias marcações", () => {
       render(<TreinoSessao />);
-      marcarTodas();
-      fireEvent.click(botaoProximo());
+      comecar();
+      marcarTodas();                       // avança sozinho (RN-04.14)
       expect(series().every((cb) => cb.getAttribute("aria-checked") === "false")).toBe(true);
       fireEvent.click(screen.getByRole("button", { name: "Exercício anterior" }));
       expect(series().every((cb) => cb.getAttribute("aria-checked") === "true")).toBe(true);
@@ -169,6 +182,7 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("pulado sem anotação não grava; séries marcadas antes de pular não contam", () => {
       render(<TreinoSessao />);
+      comecar();
       fireEvent.click(series()[0]!);  // marca 1 no Leg press…
       pular(1);                       // …e pula
       fireEvent.click(series()[0]!);  // Cadeira flexora 1/2
@@ -184,6 +198,7 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("RN-04.5 avança com séries faltando", () => {
       render(<TreinoSessao />);
+      comecar();
       fireEvent.click(series()[0]!);
       fireEvent.click(botaoProximo());
       expect(screen.getByText("2 / 4")).toBeInTheDocument();
@@ -191,12 +206,14 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("RN-04.6 Pular avança", () => {
       render(<TreinoSessao />);
+      comecar();
       pular(1);
       expect(screen.getByText("2 / 4")).toBeInTheDocument();
     });
 
     it("setas do topo navegam", () => {
       render(<TreinoSessao />);
+      comecar();
       fireEvent.click(screen.getByRole("button", { name: "Próximo exercício" }));
       expect(screen.getByText("2 / 4")).toBeInTheDocument();
       fireEvent.click(screen.getByRole("button", { name: "Exercício anterior" }));
@@ -205,6 +222,7 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("RN-04.7 último exercício mostra Ver Resumo", () => {
       render(<TreinoSessao />);
+      comecar();
       pular(3);
       expect(screen.queryByRole("button", { name: "Próximo" })).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Ver Resumo" })).toBeInTheDocument();
@@ -212,8 +230,8 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("RN-04.7 revisão lista séries feitas, pulados e não marcados", () => {
       render(<TreinoSessao />);
-      marcarTodas();                       // Leg press 3/3
-      fireEvent.click(botaoProximo());
+      comecar();
+      marcarTodas();                       // Leg press 3/3 (avança sozinho)
       fireEvent.click(series()[0]!);       // Cadeira flexora 1/2
       fireEvent.click(botaoProximo());
       pular(1);                            // Supino máquina pulado
@@ -230,8 +248,8 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("salva só exercícios com séries ou anotação, sem peso", () => {
       render(<TreinoSessao />);
-      marcarTodas();
-      fireEvent.click(botaoProximo());
+      comecar();
+      marcarTodas();                       // avança sozinho (RN-04.14)
       fireEvent.click(series()[0]!);
       fireEvent.click(botaoProximo());
       pular(1);
@@ -249,6 +267,7 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("RN-04.6 / RN-05.2 anotação é salva mesmo sem série marcada e com o exercício pulado", () => {
       render(<TreinoSessao />);
+      comecar();
       fireEvent.change(screen.getByLabelText("Como você estava neste exercício?"), { target: { value: "dor no joelho, parei" } });
       pular(3);
       salvar();
@@ -259,6 +278,7 @@ describe("TreinoSessao — PerformFit", () => {
 
     it("RN-04.9 sem série e sem anotação não salva", () => {
       render(<TreinoSessao />);
+      comecar();
       pular(3);
       salvar();
       expect(screen.getByRole("alert")).toHaveTextContent("Marque pelo menos uma série ou escreva uma anotação antes de salvar.");
@@ -273,6 +293,7 @@ describe("TreinoSessao — PerformFit", () => {
       ]);
       render(<TreinoSessao />);
       fireEvent.click(chip("Treino A"));
+      comecar();
       expect(screen.getByText("Sua anotação da última vez:")).toBeInTheDocument();
       expect(screen.getByText("senti o joelho")).toBeInTheDocument();
     });
@@ -281,8 +302,8 @@ describe("TreinoSessao — PerformFit", () => {
       registrarTreino([feito("Treino A", 0, { sessaoId: "TREINO_A", seriesFeitas: 1 })]);
       render(<TreinoSessao />);
       fireEvent.click(chip("Treino A"));
-      marcarTodas();
-      fireEvent.click(botaoProximo());
+      comecar();
+      marcarTodas();                       // avança sozinho (RN-04.14)
       pular(2);
       salvar();
       expect(screen.getByText(/Já existe um treino/)).toBeInTheDocument();
@@ -295,6 +316,7 @@ describe("TreinoSessao — PerformFit", () => {
     it("RN-04.11 avisa o pai sobre alterações não salvas", () => {
       const onUnsaved = vi.fn();
       render(<TreinoSessao onUnsavedChanges={onUnsaved} />);
+      comecar();
       expect(onUnsaved).toHaveBeenLastCalledWith(false);
       fireEvent.click(series()[0]!);
       expect(onUnsaved).toHaveBeenLastCalledWith(true);

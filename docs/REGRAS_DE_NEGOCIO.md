@@ -83,6 +83,10 @@ e só então o código.
 - **RN-04.9** É preciso ao menos 1 série marcada **ou** 1 anotação para salvar.
 - **RN-04.10** O treino em andamento fica guardado (rascunho) a cada toque e volta ao reabrir o app. O rascunho some ao salvar.
 - **RN-04.11** Ao trocar de aba com treino não salvo, o app pede confirmação.
+- **RN-04.12** **Lista do treino do dia.** Ao abrir um treino, o app mostra primeiro a lista com **todos os exercícios**, em ordem, e o estado de cada um: **✓** concluído, **"2/3"** parcial, **"Pulado"**. Cada item é um botão grande (≥56px) que abre aquele exercício. Embaixo, o botão grande **Começar** (nada marcado) ou **Continuar** (treino em andamento: volta ao exercício onde o aluno parou).
+- **RN-04.13** **Barra de progresso do treino** no topo da lista e do exercício: **"X de N exercícios"**. Conta como feito o exercício com todas as séries marcadas ou pulado.
+- **RN-04.14** **Avança sozinho:** ao marcar a última série que faltava de um exercício, o app vai para o próximo e mostra **"✓ Leg press concluído"** com o botão **Voltar para Leg press**. No último exercício não avança (o botão Ver Resumo fica em destaque).
+- **RN-04.15** No exercício, os pontinhos de navegação foram trocados pelo botão **Ver lista do treino** (≥48px), que volta para a lista (RN-04.12).
 
 ## RN-05 — Anotações do aluno
 
@@ -101,6 +105,14 @@ e só então o código.
 - **RN-06.6** **Séries por grupo muscular** = soma das séries marcadas por grupo, na semana, no mês ou no ano. Grupos do plano sem nenhuma série aparecem com 0 (mostram o que ficou de fora).
 - **RN-06.7** Aba **Semana**: treinos da semana contra os dias do plano ("2 de 3 treinos", "Falta 1 treino para fechar a semana", "Semana completa!"), a sequência ("🔥 4 semanas seguidas") e as séries por grupo. Navega para semanas anteriores.
 - **RN-06.8** Aba **Evolução**: sequência atual, recorde, semanas completas, calendário das últimas 12 semanas (completa, folga, incompleta, em andamento) e séries por grupo por mês e por ano.
+- **RN-06.9** **Gráfico de treinos por semana** (aba Evolução): barras com os treinos de cada uma das **últimas 12 semanas** (a atual é a última; semanas sem treino aparecem com 0) e uma **linha tracejada na meta** (dias por semana do plano, RN-03.1).
+- **RN-06.10** **Gráfico de séries por semana** (aba Evolução): área com as séries marcadas em cada uma das últimas 12 semanas, e a frase de comparação com o mês passado. A comparação é justa: **mês atual até hoje** contra o **mês passado até o mesmo dia**.
+  - mais: `Você fez 18% mais séries que no mesmo período do mês passado.`
+  - menos: `Você fez 12% menos séries que no mesmo período do mês passado.`
+  - igual: `Você fez o mesmo número de séries que no mesmo período do mês passado.`
+  - mês passado sem séries no período: sem frase. A porcentagem é arredondada para inteiro.
+- **RN-06.11** **Anel de progresso** no topo da aba Semana: "2 de 3 treinos" num anel que enche conforme os treinos da semana (fica cheio e verde ao completar; não passa de cheio). Substitui a barra segmentada.
+- **RN-06.12** Todo gráfico tem os mesmos dados em texto para leitor de tela (tabela escondida), com título e semana a semana.
 
 ## RN-07 — Vídeos
 

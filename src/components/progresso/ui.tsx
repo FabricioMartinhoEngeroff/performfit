@@ -132,3 +132,55 @@ export function GruposBarras({ grupos }: { grupos: { grupo: string; series: numb
     </ul>
   );
 }
+
+/** RN-06.11: anel que enche conforme os treinos da semana; cheio e verde ao completar. */
+export function AnelProgresso({ feitos, meta, rotulo }: { feitos: number; meta: number; rotulo: string }) {
+  const TAM = 132;
+  const TRACO = 14;
+  const raio = (TAM - TRACO) / 2;
+  const circ = 2 * Math.PI * raio;
+  const completo = feitos >= meta;
+  const fracao = meta > 0 ? Math.min(1, feitos / meta) : 0;
+  const cor = completo ? "#16a34a" : "#2563eb";
+  return (
+    <div
+      role="progressbar"
+      aria-label={rotulo}
+      aria-valuemin={0}
+      aria-valuemax={meta}
+      aria-valuenow={Math.min(feitos, meta)}
+      aria-valuetext={`${feitos} de ${plural(meta, "treino", "treinos")}`}
+      data-completo={String(completo)}
+      style={{ position: "relative", width: TAM, height: TAM, flexShrink: 0 }}
+    >
+      <svg width={TAM} height={TAM} viewBox={`0 0 ${TAM} ${TAM}`} aria-hidden="true">
+        <circle cx={TAM / 2} cy={TAM / 2} r={raio} fill="none" stroke="#e5e7eb" strokeWidth={TRACO} />
+        <circle
+          cx={TAM / 2}
+          cy={TAM / 2}
+          r={raio}
+          fill="none"
+          stroke={cor}
+          strokeWidth={TRACO}
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={circ * (1 - fracao)}
+          transform={`rotate(-90 ${TAM / 2} ${TAM / 2})`}
+          style={{ transition: "stroke-dashoffset 0.4s" }}
+        />
+      </svg>
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center", lineHeight: 1.1,
+        }}
+      >
+        <span style={{ fontSize: 34, fontWeight: 700, color: completo ? "#16a34a" : "#111827" }}>
+          {completo ? "✓" : `${feitos}/${meta}`}
+        </span>
+        <span style={{ fontSize: 14, color: "#4b5563" }}>treinos</span>
+      </div>
+    </div>
+  );
+}

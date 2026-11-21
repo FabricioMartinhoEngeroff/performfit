@@ -78,4 +78,35 @@ describe("Aba Semana", () => {
     fireEvent.click(screen.getByRole("button", { name: "Próxima semana" }));
     expect(screen.getByText("02/11 – 08/11")).toBeInTheDocument();
   });
+
+  describe("RN-06.11 — anel de progresso da semana", () => {
+    const anel = () => screen.getByRole("progressbar", { name: "Treinos da semana" });
+
+    it("mostra quantos treinos da meta já foram feitos", () => {
+      planoDeTeste();
+      registrarTreino([...treino(2, 11, "UA", { Peitoral: 3 }), ...treino(3, 11, "LA", { Quadríceps: 3 })]);
+      render(<Semana />);
+      expect(anel()).toHaveAttribute("aria-valuenow", "2");
+      expect(anel()).toHaveAttribute("aria-valuemax", "3");
+      expect(anel()).toHaveAttribute("aria-valuetext", "2 de 3 treinos");
+      expect(anel()).toHaveAttribute("data-completo", "false");
+    });
+
+    it("fica cheio e verde ao completar, sem passar de cheio", () => {
+      planoComDias(2);
+      registrarTreino([
+        ...treino(2, 11, "UA", { Peitoral: 3 }), ...treino(3, 11, "LA", { Quadríceps: 3 }), ...treino(4, 11, "UB", { Costas: 3 }),
+      ]);
+      render(<Semana />);
+      expect(anel()).toHaveAttribute("aria-valuenow", "2");
+      expect(anel()).toHaveAttribute("aria-valuetext", "3 de 2 treinos");
+      expect(anel()).toHaveAttribute("data-completo", "true");
+    });
+
+    it("substitui a barra segmentada", () => {
+      planoDeTeste();
+      const { container } = render(<Semana />);
+      expect(container.querySelector('[aria-hidden="true"] > div[style*="height: 14px"]')).toBeNull();
+    });
+  });
 });
