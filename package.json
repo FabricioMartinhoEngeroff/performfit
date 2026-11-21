@@ -18,7 +18,7 @@
     "canvas-confetti": "^1.9.3",
     "date-fns": "^4.1.0",
     "firebase": "^13.0.0",
-    "lucide-react": "^0.555.0",
+    "lucide-react": "^1.75.0",
     "papaparse": "^5.5.3",
     "phosphor-react": "^1.4.1",
     "react": "^19.1.0",
