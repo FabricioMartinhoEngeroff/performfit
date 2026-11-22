@@ -205,6 +205,16 @@ e só então o código.
 - **RN-13.6** **Fechar ou recarregar a página** com treino em andamento: o navegador mostra o aviso dele (o texto é do navegador e não dá para trocar). O rascunho já está guardado (RN-04.10).
 - **RN-13.7** Sem treino em andamento, ou depois de salvar, nada pergunta.
 
+## RN-14 — Tela de erro amigável
+
+- **RN-14.1** **Nunca tela branca.** Se qualquer parte do app quebrar (login, abas do aluno, administração), aparece a **tela de erro** no lugar. Isso vale tanto para erros dentro das rotas (`errorElement` em todas as rotas) quanto fora delas (`ErroBoundary` em volta de tudo, em `main.tsx`).
+- **RN-14.2** A tela mostra um ícone, o título **`Algo deu errado`** e o texto **`Seus dados estão salvos neste celular. Toque em Recarregar para voltar ao app.`**. Nenhum detalhe técnico aparece para o aluno; o erro vai para o console, para diagnóstico.
+- **RN-14.3** Dois botões grandes (≥56px), um embaixo do outro:
+  - **Recarregar** (principal, primeiro, com foco): recarrega a página;
+  - **Baixar backup**: baixa o mesmo arquivo do Perfil (`performfit_backup_AAAA-MM-DD.json`, RN-08.2).
+- **RN-14.4** Se o backup não puder ser montado (dados com defeito), o app baixa uma **cópia dos dados guardados** (`performfit_dados_AAAA-MM-DD.json`), para o suporte recuperar. Se nem isso der certo, avisa: `Não foi possível baixar o backup agora. Seus dados continuam guardados neste celular.`
+- **RN-14.5** Os textos ficam no catálogo de mensagens (`src/mensagens/catalogo.ts`, RN-13.1).
+
 ## Backlog (combinado, ainda não implementado)
 
 - **Escala de disposição 0–10** ao final do treino ("Como você estava hoje?"), gravada junto com o treino, para o professor avaliar.

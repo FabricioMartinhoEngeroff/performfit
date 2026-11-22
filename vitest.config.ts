@@ -8,6 +8,8 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/__tests__/setup/vitest.setup.ts"],
+    // Telas inteiras no jsdom e login com criptografia real passam de 5s com a suíte toda em paralelo.
+    testTimeout: 15_000,
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],

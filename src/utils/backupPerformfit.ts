@@ -53,3 +53,61 @@ export function importarBackupPerformfit(texto: string): ResultadoImportacao {
   if (plano) salvarPlano(plano);
   return { ok: true, novos: novos.length };
 }
+
+// ─── Baixar o backup (Perfil e tela de erro, RN-08.2 / RN-14.3 / RN-14.4) ─────
+
+export interface ArquivoBackup {
+  nome: string;
+  conteudo: string;
+  /** "backup" = o backup normal; "copia" = cópia bruta dos dados, quando o backup não monta. */
+  tipo: "backup" | "copia";
+}
+
+const diaLocal = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/** Só as chaves do app (`gw:{usuário}:{chave}`, RN-08.1), cruas, para o suporte recuperar. */
+function copiaDosDados(): Record<string, string> {
+  const dados: Record<string, string> = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k?.startsWith("gw:")) dados[k] = localStorage.getItem(k) ?? "";
+  }
+  return dados;
+}
+
+export function arquivoDeBackup(agora = new Date(), montar = montarBackupPerformfit): ArquivoBackup {
+  try {
+    return {
+      nome: `performfit_backup_${diaLocal(agora)}.json`,
+      conteudo: JSON.stringify(montar(agora), null, 2),
+      tipo: "backup",
+    };
+  } catch {
+    return {
+      nome: `performfit_dados_${diaLocal(agora)}.json`,
+      conteudo: JSON.stringify(
+        { app: "performfit", tipo: "copia-dos-dados", exportadoEm: agora.toISOString(), dados: copiaDosDados() },
+        null,
+        2
+      ),
+      tipo: "copia",
+    };
+  }
+}
+
+/** Baixa o backup (ou a cópia dos dados). Nunca lança: responde "falhou" se o navegador não deixar. */
+export function baixarBackup(agora = new Date(), montar = montarBackupPerformfit): ArquivoBackup["tipo"] | "falhou" {
+  try {
+    const arquivo = arquivoDeBackup(agora, montar);
+    const url = URL.createObjectURL(new Blob([arquivo.conteudo], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = arquivo.nome;
+    a.click();
+    URL.revokeObjectURL(url);
+    return arquivo.tipo;
+  } catch {
+    return "falhou";
+  }
+}

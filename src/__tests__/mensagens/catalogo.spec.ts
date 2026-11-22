@@ -34,3 +34,17 @@ describe("RN-13.1 catálogo de confirmações", () => {
     expect(m.confirmar).not.toBe(m.cancelar);
   });
 });
+
+describe("RN-14.5 textos da tela de erro no catálogo", () => {
+  it("título, texto, botões e aviso de falha no backup", async () => {
+    const { TELA_DE_ERRO } = await import("../../mensagens/catalogo");
+    expect(TELA_DE_ERRO).toEqual({
+      titulo: "Algo deu errado",
+      texto: "Seus dados estão salvos neste celular. Toque em Recarregar para voltar ao app.",
+      recarregar: "Recarregar",
+      baixarBackup: "Baixar backup",
+      backupBaixado: "Backup baixado. Guarde o arquivo.",
+      backupFalhou: "Não foi possível baixar o backup agora. Seus dados continuam guardados neste celular.",
+    });
+  });
+});

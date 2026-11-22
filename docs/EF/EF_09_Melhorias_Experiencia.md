@@ -246,3 +246,31 @@ if (await confirmar(CONFIRMACOES.sairDoTreino)) { /* sai */ }
 **Testes:** `mensagens/catalogo.spec.ts`, `mensagens/Confirmacao.spec.tsx`, `mensagens/useSaidaProtegida.spec.tsx`, `App.saida.spec.tsx`, `static/mensagens.spec.ts`.
 
 **Pendente:** as telas de administração (`AdminImport`, `Exportar`, `ImportarBackupJson`) ainda usam `window.confirm`. Elas podem passar a usar o catálogo também.
+
+---
+
+## 11. Tela de erro amigável (RN-14)
+
+Se algo quebrar, o aluno nunca vê tela branca:
+
+```
+        [ícone de alerta]
+        Algo deu errado
+  Seus dados estão salvos neste celular.
+  Toque em Recarregar para voltar ao app.
+
+  [        Recarregar        ]   ← principal, com foco
+  [      Baixar backup       ]
+```
+
+| Onde o erro acontece | Quem pega |
+|---|---|
+| Dentro de uma rota (login, aluno, admin) | `errorElement: <ErroDeRota />` em todas as rotas (`router/appRoutes.tsx`). Sem isso, o React Router mostra a tela padrão dele, em inglês |
+| Fora das rotas (AuthProvider, provedores) | `<ErroBoundary>` em volta de tudo, em `main.tsx` |
+| Na inicialização (ex.: Firebase sem configuração) | `bootstrap().catch(...)` mostra a `TelaDeErro` |
+
+- **Baixar backup** usa o mesmo `baixarBackup()` do Perfil (`utils/backupPerformfit.ts`). Se os dados estiverem com defeito e o backup não montar, baixa `performfit_dados_AAAA-MM-DD.json` com a cópia crua das chaves `gw:`.
+- O erro técnico vai só para o console.
+- Os textos ficam em `TELA_DE_ERRO`, no catálogo de mensagens.
+
+**Testes:** `mensagens/TelaDeErro.spec.tsx`, `utils/baixarBackup.spec.ts`, `components/login/routes/rotasTelaDeErro.spec.tsx`, `static/mensagens.spec.ts`, `mensagens/catalogo.spec.ts`.

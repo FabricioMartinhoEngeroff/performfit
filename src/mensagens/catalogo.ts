@@ -30,3 +30,13 @@ export const CONFIRMACOES = {
 } satisfies Record<string, MensagemConfirmacao>;
 
 export type NomeConfirmacao = keyof typeof CONFIRMACOES;
+
+/** RN-14: tela de erro amigável (nunca tela branca). */
+export const TELA_DE_ERRO = {
+  titulo: "Algo deu errado",
+  texto: "Seus dados estão salvos neste celular. Toque em Recarregar para voltar ao app.",
+  recarregar: "Recarregar",
+  baixarBackup: "Baixar backup",
+  backupBaixado: "Backup baixado. Guarde o arquivo.",
+  backupFalhou: "Não foi possível baixar o backup agora. Seus dados continuam guardados neste celular.",
+} as const;

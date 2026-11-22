@@ -27,3 +27,21 @@ describe("RN-13 mensagens só pelo módulo", () => {
     expect(ler("components/treinoSessao/TreinoSessao.tsx")).not.toMatch(/beforeunload/);
   });
 });
+
+describe("RN-14.1 ErroBoundary em volta de tudo", () => {
+  it("main.tsx envolve o app com o ErroBoundary", () => {
+    const main = ler("main.tsx");
+    expect(main).toMatch(/import \{ ErroBoundary, TelaDeErro \} from "\.\/mensagens\/TelaDeErro"/);
+    expect(main.indexOf("<ErroBoundary>")).toBeLessThan(main.indexOf("<AuthProvider"));
+  });
+
+  it("falha ao iniciar o app também mostra a tela de erro", () => {
+    expect(ler("main.tsx")).toMatch(/bootstrap\(\)\.catch\([\s\S]*render\(<TelaDeErro \/>\)/);
+  });
+
+  it("Perfil usa o mesmo baixarBackup (sem cópia do código)", () => {
+    const perfil = ler("components/perfil/Perfil.tsx");
+    expect(perfil).not.toMatch(/function baixarBackup/);
+    expect(perfil).toMatch(/baixarBackup/);
+  });
+});

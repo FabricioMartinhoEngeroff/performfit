@@ -2,7 +2,7 @@ import { useMemo, useState, type ChangeEvent } from "react";
 import { Lock, Trophy } from "lucide-react";
 import ImportarPlano from "../plano/ImportarPlano";
 import InstalarApp from "./InstalarApp";
-import { importarBackupPerformfit, montarBackupPerformfit } from "../../utils/backupPerformfit";
+import { baixarBackup, importarBackupPerformfit } from "../../utils/backupPerformfit";
 import { carregarPlano, diasPorSemana, resumoPlano } from "../../utils/planoPerformfit";
 import { carregarExecucoes } from "../../utils/execucoes";
 import { conquistas } from "../../utils/conquistas";
@@ -15,16 +15,6 @@ const botao = {
   display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "inherit",
   boxSizing: "border-box",
 } as const;
-
-function baixarBackup() {
-  const blob = new Blob([JSON.stringify(montarBackupPerformfit(), null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `performfit_backup_${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 /** RN-10.7: conquistas ganhas em destaque; as outras apagadas, com quanto falta. */
 function Conquistas({ versao }: { versao: number }) {
@@ -133,7 +123,7 @@ export default function Perfil() {
             </p>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <button type="button" onClick={baixarBackup} style={botao}>Exportar backup</button>
+            <button type="button" onClick={() => baixarBackup()} style={botao}>Exportar backup</button>
             <label style={{ ...botao, background: "#ffffff" }}>
               Importar backup
               <input
