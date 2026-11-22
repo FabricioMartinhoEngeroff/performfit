@@ -7,6 +7,7 @@ import "./index.css";
 import { router } from "./router/RouterTEMP";
 import { GlobalStyles } from "./styles/GlobalStyles";
 import { iniciarCapturaInstalacao } from "./utils/instalacao";
+import { ConfirmacaoProvider } from "./mensagens/Confirmacao";
 
 // RN-12.3: o Chrome pede a instalação logo ao abrir; guarda o pedido para o Perfil.
 iniciarCapturaInstalacao();
@@ -19,7 +20,10 @@ async function bootstrap() {
     <StrictMode>
       <AuthProvider gateway={gateway}>
         <GlobalStyles />
-        <RouterProvider router={router} />
+        {/* RN-13: caixa de confirmação disponível em todo o sistema */}
+        <ConfirmacaoProvider>
+          <RouterProvider router={router} />
+        </ConfirmacaoProvider>
       </AuthProvider>
     </StrictMode>
   );

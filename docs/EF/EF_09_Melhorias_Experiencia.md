@@ -216,3 +216,33 @@ O retorno veio de um aluno testando no celular. Os três pontos foram corrigidos
 | A1 | Dois "Próximo" na tela (setas do topo e botão grande), mais o texto "Próximo da sequência" | Sem barra de setas no topo e sem botão Pular. Embaixo ficam só **Voltar** e **Próximo**. A posição aparece como "Exercício 2 de 6". Próximo sem série marcada conta como pulado. O texto virou "Treino sugerido: Lower B" | RN-04.16, RN-04.6, RN-03.3 | `treinoSessao/UmSoProximo.spec.tsx` |
 | A2 | Semana "16/11 – 22/11" quebrada em 3 linhas e difícil de entender | Título "Esta semana" / "Semana passada" / "Há 3 semanas" e as datas por extenso numa linha só ("16 a 22 de novembro"). As setas têm 48px fixos: o `button { width: 100% }` global do `index.css` esticava as setas | RN-06.13 | `semana/Semana.spec.tsx`, `utils/semanas.spec.ts` |
 | A3 | Dia do treino confuso (3 botões e calendário de uma vez, com data em números) | Mostra só "Hoje, sábado, 21 de novembro" e o botão "Treinei em outro dia". Hoje, Ontem e Outro dia só aparecem depois de tocar nele | RN-11.1 a RN-11.3 | `treinoSessao/DataDoTreino.spec.tsx`, `utils/datas.spec.ts` |
+
+---
+
+## 10. Mensagens de confirmação ao sair do treino (RN-13)
+
+O módulo fica em `src/mensagens/` e vale para o sistema todo (`ConfirmacaoProvider` em `main.tsx`).
+
+| Arquivo | Para que serve |
+|---|---|
+| `catalogo.ts` | Todas as mensagens de confirmação: título, texto, botão de confirmar e botão de ficar |
+| `Confirmacao.tsx` | A caixa do app (`alertdialog`, botões de 56px, botão seguro primeiro e com foco, Esc ou toque fora = ficar) e o hook `useConfirmacao()` |
+| `useSaidaProtegida.ts` | Segura o botão voltar do celular e o fechar/recarregar enquanto o treino não foi salvo |
+
+Uso em qualquer tela:
+
+```tsx
+const confirmar = useConfirmacao();
+if (await confirmar(CONFIRMACOES.sairDoTreino)) { /* sai */ }
+```
+
+| Situação | Mensagem | Regra |
+|---|---|---|
+| Trocar de aba com treino em andamento | Sair do treino? | RN-13.3 |
+| Botão Sair da conta com treino em andamento | Sair da sua conta? | RN-13.4 |
+| Botão voltar do celular | Sair do treino? | RN-13.5 |
+| Fechar ou recarregar a página | Aviso do próprio navegador | RN-13.6 |
+
+**Testes:** `mensagens/catalogo.spec.ts`, `mensagens/Confirmacao.spec.tsx`, `mensagens/useSaidaProtegida.spec.tsx`, `App.saida.spec.tsx`, `static/mensagens.spec.ts`.
+
+**Pendente:** as telas de administração (`AdminImport`, `Exportar`, `ImportarBackupJson`) ainda usam `window.confirm`. Elas podem passar a usar o catálogo também.

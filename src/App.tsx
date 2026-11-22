@@ -8,6 +8,9 @@ import Evolucao from "./components/evolucao/Evolucao";
 import Perfil from "./components/perfil/Perfil";
 import BottomNav, { type Tab } from "./components/layout/BottomNav";
 import { useAuth } from "./components/login/context/useAuth";
+import { useConfirmacao } from "./mensagens/Confirmacao";
+import { useSaidaProtegida } from "./mensagens/useSaidaProtegida";
+import { CONFIRMACOES } from "./mensagens/catalogo";
 
 // RN-09.4: preso à tela (não rola para os lados); só o conteúdo da aba rola.
 const Shell = styled.div`
@@ -69,18 +72,23 @@ export default function App() {
   const navigate = useNavigate();
 
   const { user, signOut } = useAuth();
+  const confirmar = useConfirmacao();
 
+  // RN-13.5 / RN-13.6: voltar do celular e fechar a página com treino em andamento.
+  useSaidaProtegida(unsavedChanges, CONFIRMACOES.sairDoTreino);
+
+  // RN-13.3: trocar de aba com treino em andamento pergunta antes.
   const handleTabChange = useCallback(
-    (newTab: Tab) => {
-      if (newTab !== "treinar" && unsavedChanges) {
-        if (!window.confirm("Você tem alterações não salvas. Sair mesmo assim?")) return;
-      }
+    async (newTab: Tab) => {
+      if (newTab !== "treinar" && unsavedChanges && !(await confirmar(CONFIRMACOES.sairDoTreino))) return;
       setTab(newTab);
     },
-    [unsavedChanges]
+    [unsavedChanges, confirmar]
   );
 
+  // RN-13.4: sair da conta com treino em andamento pergunta antes.
   const handleLogout = async () => {
+    if (unsavedChanges && !(await confirmar(CONFIRMACOES.sairDaConta))) return;
     await signOut();
     navigate("/", { replace: true });
   };

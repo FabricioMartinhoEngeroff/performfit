@@ -4,6 +4,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { ConfirmacaoProvider } from "../mensagens/Confirmacao";
 
 vi.mock("../components/login/context/useAuth", () => ({
   useAuth: () => ({ user: { name: "Ana" }, signOut: vi.fn() }),
@@ -12,7 +13,7 @@ vi.mock("../components/login/context/useAuth", () => ({
 import App from "../App";
 
 function renderApp() {
-  const { container } = render(<MemoryRouter><App /></MemoryRouter>);
+  const { container } = render(<MemoryRouter><ConfirmacaoProvider><App /></ConfirmacaoProvider></MemoryRouter>);
   return container.firstElementChild as HTMLElement;
 }
 

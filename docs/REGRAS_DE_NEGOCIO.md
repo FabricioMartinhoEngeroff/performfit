@@ -82,7 +82,7 @@ e só então o código.
 - **RN-04.8** Salvar o mesmo treino na mesma data pede confirmação e **substitui** o registro daquele dia (não duplica).
 - **RN-04.9** É preciso ao menos 1 série marcada **ou** 1 anotação para salvar.
 - **RN-04.10** O treino em andamento fica guardado (rascunho) a cada toque e volta ao reabrir o app. O rascunho some ao salvar.
-- **RN-04.11** Ao trocar de aba com treino não salvo, o app pede confirmação.
+- **RN-04.11** Sair do treino sem salvar (trocar de aba, sair da conta ou voltar pelo botão do celular) pede confirmação, com a caixa de mensagens do app (RN-13).
 - **RN-04.12** **Lista do treino do dia.** Ao abrir um treino, o app mostra primeiro a lista com **todos os exercícios**, em ordem, e o estado de cada um: **✓** concluído, **"2/3"** parcial, **"Pulado"**. Cada item é um botão grande (≥56px) que abre aquele exercício. Embaixo, o botão grande **Começar** (nada marcado) ou **Continuar** (treino em andamento: volta ao exercício onde o aluno parou).
 - **RN-04.13** **Barra de progresso do treino** no topo da lista e do exercício: **"X de N exercícios"**. Conta como feito o exercício com todas as séries marcadas ou pulado.
 - **RN-04.14** **Avança sozinho:** ao marcar a última série que faltava de um exercício, o app vai para o próximo e mostra **"✓ Leg press concluído"** com o botão **Voltar para Leg press**. No último exercício não avança (o botão Ver Resumo fica em destaque).
@@ -186,6 +186,24 @@ e só então o código.
 - **RN-12.4** A instalação só funciona em **HTTPS de verdade** (produção) ou `localhost`. O certificado de teste da rede local não basta para o service worker.
 
 ---
+
+
+## RN-13 — Mensagens de confirmação (módulo global)
+
+- **RN-13.1** **Um lugar só para as mensagens.** Toda pergunta de confirmação do sistema fica no catálogo `src/mensagens/catalogo.ts` (título, texto, botão de confirmar e botão de ficar). As telas usam a mensagem pelo nome (`CONFIRMACOES.sairDoTreino`) e não escrevem o texto de novo.
+- **RN-13.2** **Caixa do próprio app, não a do navegador** (`window.confirm` não é usado nas telas do aluno). A caixa tem ícone (lucide), título, texto de 17px e **dois botões grandes** (≥56px), um embaixo do outro. O botão **seguro** (ficar) vem primeiro, em destaque (azul), e já recebe o foco. Tecla Esc ou toque fora da caixa = ficar. Leitor de tela: `alertdialog` com título e texto.
+- **RN-13.3** **Trocar de aba com treino em andamento** (alguma série marcada, pulada ou anotação, sem salvar) pergunta:
+  - título: `Sair do treino?`
+  - texto: `Seu treino ainda não foi salvo. O que você marcou fica guardado e você pode continuar depois.`
+  - botões: `Continuar treinando` (fica) / `Sair do treino` (troca de aba).
+- **RN-13.4** **Botão "Sair" (da conta) com treino em andamento** pergunta:
+  - título: `Sair da sua conta?`
+  - texto: `Seu treino ainda não foi salvo. O que você marcou fica guardado neste celular e volta quando você entrar de novo.`
+  - botões: `Continuar treinando` / `Sair da conta`.
+  Sem treino em andamento, sai direto.
+- **RN-13.5** **Botão voltar do celular** com treino em andamento mostra a mesma pergunta da RN-13.3. `Continuar treinando` mantém o aluno no treino; `Sair do treino` deixa voltar.
+- **RN-13.6** **Fechar ou recarregar a página** com treino em andamento: o navegador mostra o aviso dele (o texto é do navegador e não dá para trocar). O rascunho já está guardado (RN-04.10).
+- **RN-13.7** Sem treino em andamento, ou depois de salvar, nada pergunta.
 
 ## Backlog (combinado, ainda não implementado)
 

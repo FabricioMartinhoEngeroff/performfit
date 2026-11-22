@@ -222,16 +222,6 @@ export default function TreinoSessao({ onUnsavedChanges }: TreinoSessaoProps = {
     onUnsavedChanges?.(hasUnsavedChanges);
   }, [hasUnsavedChanges, onUnsavedChanges]);
 
-  useEffect(() => {
-    if (!hasUnsavedChanges) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [hasUnsavedChanges]);
-
   function selecionarSessao(s: string) {
     if (s === sessao) return;
     setAndamento(abrirSessao(s));
