@@ -12,11 +12,22 @@ describe("exerciseDbService — fetchExerciseGif", () => {
     expect(result).toBeNull();
   });
 
-  it("retorna null quando RAPIDAPI_KEY nao esta definida", async () => {
+  it("retorna null quando RAPIDAPI_KEY nao esta definida, sem chamar a API", async () => {
     vi.stubEnv("VITE_RAPIDAPI_KEY", "");
-    const { fetchExerciseGif: freshFetch } = await import("../../services/exerciseDbService");
-    const result = await freshFetch("Supino reto barra");
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    const result = await fetchExerciseGif("Supino reto barra");
     expect(result).toBeNull();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("le a chave na hora da busca (nao quando o arquivo carrega) e a envia no cabecalho", async () => {
+    vi.stubEnv("VITE_RAPIDAPI_KEY", "chave-definida-depois");
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) });
+    vi.stubGlobal("fetch", fetchSpy);
+    await fetchExerciseGif("Stiff");
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy.mock.calls[0]![1].headers["X-RapidAPI-Key"]).toBe("chave-definida-depois");
   });
 
   it("retorna gifUrl da API quando disponivel", async () => {

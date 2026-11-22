@@ -59,4 +59,13 @@ describe("useBreakpoint — Hook de responsive design", () => {
     expect(removeSpy).toHaveBeenCalledWith("orientationchange", expect.any(Function));
     removeSpy.mockRestore();
   });
+
+  it("trocar o breakpoint recalcula na hora, sem precisar de resize", () => {
+    Object.defineProperty(window, "innerWidth", { value: 500 });
+    Object.defineProperty(window, "innerHeight", { value: 800 });
+    const { result, rerender } = renderHook(({ bp }) => useBreakpoint(bp), { initialProps: { bp: 768 } });
+    expect(result.current).toBe(true);
+    rerender({ bp: 400 });
+    expect(result.current).toBe(false);
+  });
 });
